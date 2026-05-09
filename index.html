@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SentinelFood — Monitoring Gudang Pangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════ RESET ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#FAFAFA;color:#0F1C14;-webkit-font-smoothing:antialiased;font-family:'Bricolage Grotesque',sans-serif}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#F0F0EE}
+::-webkit-scrollbar-thumb{background:#C8D0C0;border-radius:4px}
+input,select,textarea,button{font-family:'Bricolage Grotesque',sans-serif;outline:none;border:none}
+button{cursor:pointer}
+
+/* ═══════════════════════════ TOKENS ═══ */
+:root{
+  --forest:   #00613C;
+  --forest2:  #007A4C;
+  --forest3:  #00915A;
+  --mint:     #E8F4EE;
+  --mint2:    #D0EAD9;
+  --gold:     #C8860A;
+  --gold2:    #F5C842;
+  --gold-bg:  #FFF8E6;
+  --red:      #C0281E;
+  --red-bg:   #FFF0EF;
+  --blue:     #1A5FA8;
+  --blue-bg:  #EEF4FF;
+  --white:    #FFFFFF;
+  --paper:    #FAFAFA;
+  --gray50:   #F5F5F3;
+  --gray100:  #EBEBEA;
+  --gray200:  #D8D8D6;
+  --gray300:  #B8B8B6;
+  --gray400:  #8A8A88;
+  --gray500:  #5A5A58;
+  --gray700:  #2A2A28;
+  --gray900:  #0F1C14;
+  --mono:     'Geist Mono', monospace;
+  --r-card:   10px;
+  --r-btn:    7px;
+  --sh-xs:    0 1px 3px rgba(0,0,0,.06);
+  --sh-sm:    0 2px 8px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --sh-md:    0 6px 20px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.05);
+  --sh-lg:    0 12px 40px rgba(0,0,0,.11), 0 4px 12px rgba(0,0,0,.06);
+}
+
+/* ═══════════════════════════ LAYOUT ═══ */
+#app{display:grid;grid-template-rows:58px 1fr;height:100vh;overflow:hidden;display:none}
+#body-wrap{display:grid;grid-template-columns:230px 1fr;overflow:hidden}
+#content{overflow-y:auto;background:var(--paper)}
+.page{padding:32px 36px;display:none;flex-direction:column;gap:24px}
+.page.on{display:flex}
+
+/* ═══════════════════════════ TOPBAR ═══ */
+#topbar{
+  display:flex;align-items:center;gap:18px;padding:0 28px;
+  background:var(--white);border-bottom:1px solid var(--gray100);
+  box-shadow:var(--sh-xs);z-index:40;position:relative;
+}
+.tb-brand{display:flex;align-items:center;gap:11px}
+.tb-mark{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(145deg,var(--forest),var(--forest2));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,97,60,.28);
+}
+.tb-mark svg{width:18px;height:18px;fill:white}
+.tb-wordmark{font-size:16px;font-weight:800;color:var(--forest);letter-spacing:-.3px}
+.tb-sub{font-size:11px;color:var(--gray300);font-weight:400;letter-spacing:.2px}
+.tb-gap{flex:1}
+#topbar-clock{font-family:var(--mono);font-size:12px;color:var(--gray400);letter-spacing:.4px}
+.status-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;
+  transition:.3s;
+}
+.status-chip.live {background:#DCFCE7;color:#15803D}
+.status-chip.dead{background:#FEE2E2;color:#B91C1C}
+.s-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.status-chip.live .s-dot{animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.tb-user{display:flex;align-items:center;gap:8px}
+.tb-avatar{
+  width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--mint2),#A8D5B8);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:var(--forest);
+}
+.tb-uname{font-size:13px;font-weight:600;color:var(--gray500)}
+.tb-logout{
+  padding:5px 13px;border:1.5px solid var(--gray200);border-radius:var(--r-btn);
+  background:transparent;color:var(--gray500);font-size:12px;font-weight:600;
+  transition:.2s;letter-spacing:.2px;
+}
+.tb-logout:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+/* ═══════════════════════════ SIDEBAR ═══ */
+#sidebar{
+  background:var(--white);border-right:1px solid var(--gray100);
+  display:flex;flex-direction:column;padding:20px 0;overflow-y:auto;
+}
+.sb-sec{padding:0 14px;margin-bottom:4px}
+.sb-lbl{
+  font-size:10px;font-weight:700;color:var(--gray300);letter-spacing:1.8px;
+  text-transform:uppercase;padding:10px 10px 6px;
+}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+  cursor:pointer;transition:.15s;color:var(--gray400);font-size:13.5px;font-weight:500;
+  margin-bottom:1px;user-select:none;
+}
+.sb-item:hover{background:var(--gray50);color:var(--gray700)}
+.sb-item.active{background:var(--mint);color:var(--forest);font-weight:700}
+.sb-item svg{width:16px;height:16px;flex-shrink:0}
+.sb-item:not(.active) svg{opacity:.55}
+.sb-divider{height:1px;background:var(--gray100);margin:10px 14px}
+.sb-footer{margin-top:auto;padding:18px 14px}
+.sb-footer-card{
+  background:linear-gradient(140deg,var(--forest),var(--forest2));
+  border-radius:10px;padding:16px 18px;color:white;
+}
+.sb-footer-card strong{display:block;font-size:13px;font-weight:700;margin-bottom:4px}
+.sb-footer-card span{font-size:11px;opacity:.75;line-height:1.6}
+
+/* ═══════════════════════════ PAGE HEADER ═══ */
+.pg-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px}
+.pg-title{font-size:24px;font-weight:800;color:var(--gray900);letter-spacing:-.5px;line-height:1.2}
+.pg-sub{font-size:13px;color:var(--gray400);margin-top:3px;font-weight:400}
+
+/* ═══════════════════════════ CARDS ═══ */
+.card{background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);box-shadow:var(--sh-xs);padding:22px}
+.card-hd{font-size:12px;font-weight:700;color:var(--gray400);letter-spacing:.6px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.card-hd::after{content:'';flex:1;height:1px;background:var(--gray100)}
+
+/* ═══════════════════════════ GRIDS ═══ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.s2{grid-column:span 2}
+
+/* ═══════════════════════════ HERO BANNER ═══ */
+.hero{
+  height:210px;border-radius:var(--r-card);overflow:hidden;position:relative;
+  box-shadow:var(--sh-md);
+}
+.hero-photo{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  transition:transform 8s ease;
+}
+.hero:hover .hero-photo{transform:scale(1.03)}
+.hero-scrim{
+  position:absolute;inset:0;
+  background:linear-gradient(100deg,rgba(0,60,35,.82) 0%,rgba(0,80,45,.55) 55%,rgba(0,60,35,.25) 100%);
+}
+.hero-body{position:relative;z-index:1;padding:28px 36px;height:100%;display:flex;align-items:flex-end;justify-content:space-between}
+.hero-text h1{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.4px;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.hero-text p{font-size:13px;color:rgba(255,255,255,.7);margin-top:5px;max-width:360px}
+.hero-stats{display:flex;gap:0}
+.hero-stat{text-align:right;padding:0 22px;border-right:1px solid rgba(255,255,255,.18)}
+.hero-stat:last-child{border-right:none;padding-right:0}
+.hero-stat-n{font-family:var(--mono);font-size:30px;font-weight:500;color:#fff;line-height:1}
+.hero-stat-l{font-size:10px;color:rgba(255,255,255,.6);margin-top:4px;letter-spacing:.8px;text-transform:uppercase}
+.hero-pill{
+  position:absolute;top:18px;right:20px;
+  background:rgba(255,255,255,.18);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.25);border-radius:20px;
+  padding:4px 14px;font-size:12px;color:white;font-weight:600;
+}
+
+/* ═══════════════════════════ SENSOR CARDS ═══ */
+.sc{
+  background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);
+  padding:20px 22px;position:relative;overflow:hidden;
+  box-shadow:var(--sh-xs);transition:.2s cubic-bezier(.2,.8,.4,1);
+}
+.sc:hover{box-shadow:var(--sh-sm);transform:translateY(-1px)}
+.sc.KRITIS{border-color:#FBCACA;background:#FFFBFB;animation:crit 1.8s ease-in-out infinite}
+.sc.PERINGATAN{border-color:#FDE68A;background:#FFFDF5}
+.sc.NORMAL,.sc.AMAN{border-color:#A7D8BC}
+@keyframes crit{0%,100%{box-shadow:var(--sh-xs)}50%{box-shadow:0 0 0 3px rgba(192,40,30,.12)}}
+.sc-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:var(--r-card) 0 0 var(--r-card)}
+.NORMAL .sc-stripe,.AMAN .sc-stripe{background:var(--forest)}
+.PERINGATAN .sc-stripe{background:var(--gold)}
+.KRITIS .sc-stripe{background:var(--red)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-left:10px}
+.sc-lbl{font-size:11px;font-weight:700;color:var(--gray400);letter-spacing:.6px;text-transform:uppercase}
+.sc-icon{
+  width:34px;height:34px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.NORMAL .sc-icon,.AMAN .sc-icon{background:var(--mint)}
+.PERINGATAN .sc-icon{background:var(--gold-bg)}
+.KRITIS .sc-icon{background:var(--red-bg)}
+.sc-icon svg{width:17px;height:17px}
+.NORMAL .sc-icon svg,.AMAN .sc-icon svg{color:var(--forest)}
+.PERINGATAN .sc-icon svg{color:var(--gold)}
+.KRITIS .sc-icon svg{color:var(--red)}
+.sc-val{
+  font-family:var(--mono);font-size:44px;font-weight:500;color:var(--gray900);
+  line-height:1;letter-spacing:-1px;padding-left:10px;
+}
+.sc-unit{font-family:var(--mono);font-size:15px;color:var(--gray400);margin-left:2px;font-weight:300}
+.sc-badge{
+  display:inline-block;margin-top:10px;margin-left:10px;
+  padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:.4px;
+}
+.NORMAL .sc-badge,.AMAN .sc-badge{background:#DCFCE7;color:#15803D}
+.PERINGATAN .sc-badge{background:#FEF9C3;color:#A16207}
+.KRITIS .sc-badge{background:#FEE2E2;color:#B91C1C}
+.sc-bars{display:flex;align-items:flex-end;gap:2px;height:30px;margin-top:14px;padding:0 10px}
+.sc-bar{flex:1;min-height:2px;border-radius:2px 2px 0 0;transition:.3s}
+
+/* ═══════════════════════════ ACTUATOR CARDS ═══ */
+.ac{
+  background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);
+  overflow:hidden;box-shadow:var(--sh-xs);transition:.3s;
+}
+.ac:hover{box-shadow:var(--sh-sm)}
+.ac.on.fan {border-color:#BFDBFE}
+.ac.on.light{border-color:#FDE68A}
+.ac-photo{
+  width:100%;height:100px;object-fit:cover;object-position:center;
+  filter:grayscale(.7) brightness(.8);transition:.5s;display:block;
+  background:var(--gray100);
+}
+.ac.on .ac-photo{filter:none;brightness:1}
+.ac.on.fan .ac-photo{animation:none}
+.ac-spin{animation:spin-slow 3s linear infinite!important}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+.ac-body{padding:14px 16px}
+.ac-lbl{font-size:10px;font-weight:700;color:var(--gray300);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.ac-state{font-size:15px;font-weight:700;color:var(--gray400);transition:.3s}
+.ac.on.fan   .ac-state{color:var(--blue)}
+.ac.on.light .ac-state{color:var(--gold)}
+.ac-gpio{font-family:var(--mono);font-size:10px;color:var(--gray300);margin-bottom:12px}
+.ac-btns{display:flex;gap:8px}
+.btn-on,.btn-off{
+  flex:1;padding:7px 0;border-radius:6px;border:1.5px solid var(--gray200);
+  background:transparent;color:var(--gray500);font-size:12px;font-weight:600;transition:.2s;
+}
+.btn-on:hover {background:#DCFCE7;border-color:#86EFAC;color:#15803D}
+.btn-off:hover{background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
+
+/* ═══════════════════════════ STAT BOXES ═══ */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sbox{background:var(--gray50);border:1px solid var(--gray100);border-radius:8px;padding:13px 16px}
+.sbox-l{font-size:10px;font-weight:700;color:var(--gray300);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.sbox-v{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--gray900);line-height:1}
+.sbox-u{font-family:var(--mono);font-size:11px;color:var(--gray400);margin-left:2px}
+
+/* ═══════════════════════════ SHELF-LIFE CARDS ═══ */
+.sl-card{
+  background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);
+  overflow:hidden;cursor:pointer;transition:.2s cubic-bezier(.2,.8,.4,1);box-shadow:var(--sh-xs);
+}
+.sl-card:hover{box-shadow:var(--sh-md);transform:translateY(-3px)}
+.sl-photo{width:100%;height:88px;object-fit:cover;object-position:center;display:block;background:var(--gray100)}
+.sl-body{padding:14px 16px}
+.sl-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.sl-name{font-size:14px;font-weight:700;color:var(--gray900)}
+.sl-ref{font-family:var(--mono);font-size:9px;color:var(--gray300);margin-top:2px;letter-spacing:.3px}
+.sl-cond{
+  font-size:10px;font-weight:700;letter-spacing:.4px;
+  padding:2px 9px;border-radius:4px;flex-shrink:0;
+}
+.sl-cond.OPTIMAL{background:#DCFCE7;color:#15803D}
+.sl-cond.WASPADA{background:#FEF9C3;color:#A16207}
+.sl-cond.KRITIS {background:#FEE2E2;color:#B91C1C}
+.sl-days{font-family:var(--mono);font-size:32px;font-weight:500;color:var(--gray900);line-height:1;margin-bottom:2px}
+.sl-days span{font-size:12px;font-weight:400;color:var(--gray400);margin-left:2px}
+.sl-bar{height:4px;background:var(--gray100);border-radius:3px;margin:10px 0 8px;overflow:hidden}
+.sl-prog{height:100%;border-radius:3px;transition:width 1s ease}
+.sl-prog.OPTIMAL{background:linear-gradient(90deg,#16A34A,#22C55E)}
+.sl-prog.WASPADA{background:linear-gradient(90deg,#D97706,#F59E0B)}
+.sl-prog.KRITIS {background:linear-gradient(90deg,#DC2626,#EF4444)}
+.sl-meta{font-size:11px;color:var(--gray400);line-height:1.65}
+.sl-meta b{color:var(--gray600,#4A4A48);font-weight:600}
+
+/* ═══════════════════════════ ANALYSIS ═══ */
+.analyze-shell{background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);overflow:hidden;box-shadow:var(--sh-xs)}
+.analyze-bar{
+  padding:18px 24px;border-bottom:1px solid var(--gray100);
+  background:linear-gradient(90deg,var(--mint) 0%,var(--white) 100%);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.analyze-bar h3{font-size:14px;font-weight:700;color:var(--gray700);white-space:nowrap}
+.a-sel{
+  padding:8px 14px;background:var(--white);border:1.5px solid var(--gray200);
+  border-radius:var(--r-btn);color:var(--gray700);font-size:13px;font-weight:500;
+  cursor:pointer;transition:.2s;min-width:150px;
+}
+.a-sel:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(0,97,60,.08)}
+.a-q{
+  flex:1;padding:8px 14px;background:var(--white);border:1.5px solid var(--gray200);
+  border-radius:var(--r-btn);color:var(--gray700);font-size:13px;transition:.2s;min-width:180px;
+}
+.a-q:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(0,97,60,.08)}
+.btn-analyze{
+  padding:9px 20px;background:var(--forest);color:white;
+  border-radius:var(--r-btn);font-size:13px;font-weight:700;
+  box-shadow:0 2px 8px rgba(0,97,60,.25);transition:.2s;white-space:nowrap;
+}
+.btn-analyze:hover{background:var(--forest2);box-shadow:0 4px 16px rgba(0,97,60,.3)}
+.btn-analyze:disabled{opacity:.5;cursor:not-allowed}
+.analyze-body{padding:24px}
+.a-hint{
+  display:flex;gap:14px;padding:16px 18px;
+  background:var(--mint);border-radius:8px;border-left:3px solid var(--forest);
+}
+.a-hint svg{width:16px;height:16px;color:var(--forest);flex-shrink:0;margin-top:1px}
+.a-hint p{font-size:13px;color:var(--gray500);line-height:1.65}
+.a-loading{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--forest);font-weight:600}
+.spinner{width:18px;height:18px;border:2px solid rgba(0,97,60,.15);border-top-color:var(--forest);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.a-result-head{
+  display:flex;gap:18px;align-items:flex-start;padding:16px 18px;
+  background:var(--gray50);border-radius:8px;margin-bottom:16px;
+  border:1px solid var(--gray100);
+}
+.a-result-num .big{font-family:var(--mono);font-size:40px;font-weight:500;line-height:1}
+.big.OPTIMAL{color:var(--forest)}
+.big.WASPADA{color:var(--gold)}
+.big.KRITIS {color:var(--red)}
+.a-result-num .lbl{font-family:var(--mono);font-size:10px;color:var(--gray400);letter-spacing:.8px;margin-top:2px}
+.a-vline{width:1px;background:var(--gray200);align-self:stretch}
+.a-result-meta{flex:1;font-family:var(--mono);font-size:11px;color:var(--gray500);line-height:2}
+.a-text{font-size:13.5px;line-height:1.85;color:var(--gray500);white-space:pre-wrap;max-height:380px;overflow-y:auto}
+.a-text b,.a-text strong{color:var(--gray900);font-weight:700}
+
+/* ═══════════════════════════ THRESHOLD CARDS ═══ */
+.tc{background:var(--white);border:1px solid var(--gray100);border-radius:var(--r-card);overflow:hidden;box-shadow:var(--sh-xs);transition:.2s}
+.tc:hover{box-shadow:var(--sh-sm)}
+.tc-photo{width:100%;height:88px;object-fit:cover;object-position:center;display:block;background:var(--gray100)}
+.tc-body{padding:14px 16px}
+.tc-name{font-size:13px;font-weight:700;color:var(--gray900);margin-bottom:2px}
+.tc-ref{font-family:var(--mono);font-size:9px;color:var(--gray300);letter-spacing:.3px;margin-bottom:10px}
+.tc-row{display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px solid var(--gray100)}
+.tc-row:last-of-type{border-bottom:none}
+.tc-k{color:var(--gray400);font-weight:500}
+.tc-v{color:var(--forest);font-weight:700;font-family:var(--mono)}
+.tc-sl{margin-top:8px;font-size:11px;color:var(--gray400)}
+.tc-sl b{color:var(--gold);font-weight:700}
+
+/* ═══════════════════════════ CHART ═══ */
+.chart-box{height:180px;position:relative;margin-top:8px}
+
+/* ═══════════════════════════ TABLE ═══ */
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead tr{background:var(--gray50)}
+.tbl th{font-size:11px;font-weight:700;color:var(--gray400);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--gray100)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--gray100);font-size:13px;color:var(--gray500)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--gray50)}
+.chip{display:inline-block;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700}
+.chip-g{background:#DCFCE7;color:#15803D}
+.chip-r{background:#FEE2E2;color:#B91C1C}
+.chip-y{background:#FEF9C3;color:#A16207}
+.chip-b{background:#DBEAFE;color:#1D4ED8}
+
+/* ═══════════════════════════ CHAT ═══ */
+#chatBox{min-height:300px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:2px 0}
+.cm{max-width:80%;padding:12px 16px;font-size:13.5px;line-height:1.7;word-break:break-word;border-radius:12px}
+.cm.u{align-self:flex-end;background:var(--forest);color:white;border-radius:12px 12px 3px 12px}
+.cm.a{align-self:flex-start;background:var(--gray50);border:1px solid var(--gray100);color:var(--gray700);border-radius:12px 12px 12px 3px;white-space:pre-wrap}
+.cm.typing{align-self:flex-start;color:var(--gray300);font-size:13px;padding:8px 0}
+.chat-row{display:flex;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray100)}
+.chat-in{flex:1;padding:11px 16px;background:var(--gray50);border:1.5px solid var(--gray200);border-radius:9px;color:var(--gray700);font-size:14px;transition:.2s}
+.chat-in:focus{border-color:var(--forest);background:var(--white);box-shadow:0 0 0 3px rgba(0,97,60,.07)}
+.chat-send{padding:11px 22px;background:var(--forest);color:white;border-radius:9px;font-size:13px;font-weight:700;transition:.2s}
+.chat-send:hover{background:var(--forest2)}
+
+/* ═══════════════════════════ SECURITY ═══ */
+.sec-tbl{width:100%;border-collapse:collapse}
+.sec-tbl tr{border-bottom:1px solid var(--gray100)}
+.sec-tbl tr:last-child{border-bottom:none}
+.sec-tbl td{padding:10px 14px;font-size:13px}
+.sec-tbl td:first-child{color:var(--gray400);font-weight:500;width:45%}
+.sec-tbl td:last-child{color:var(--forest);font-weight:700;font-family:var(--mono)}
+
+/* ═══════════════════════════ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-btn);font-size:13px;font-weight:600;transition:.2s;cursor:pointer;border:none}
+.btn-primary{background:var(--forest);color:white;box-shadow:0 2px 8px rgba(0,97,60,.2)}
+.btn-primary:hover{background:var(--forest2)}
+.btn-outline{background:transparent;border:1.5px solid var(--gray200);color:var(--gray500)}
+.btn-outline:hover{border-color:var(--forest);color:var(--forest);background:var(--mint)}
+.btn-green{background:transparent;border:1.5px solid #86EFAC;color:#15803D}
+.btn-green:hover{background:#DCFCE7}
+.btn-amber{background:transparent;border:1.5px solid #FCD34D;color:#A16207}
+.btn-amber:hover{background:#FEF9C3}
+.btn-red  {background:transparent;border:1.5px solid #FCA5A5;color:#B91C1C}
+.btn-red:hover  {background:#FEE2E2}
+
+/* ═══════════════════════════ NOTIF ═══ */
+#notif-wrap{position:fixed;top:70px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:300px;pointer-events:none}
+.notif{
+  background:var(--white);border:1px solid var(--gray200);border-radius:10px;
+  padding:12px 16px;box-shadow:var(--sh-lg);font-size:13px;font-weight:500;
+  display:flex;align-items:flex-start;gap:10px;pointer-events:auto;
+  animation:notif-slide .28s cubic-bezier(.2,.8,.4,1);
+}
+.notif.g{border-left:3px solid #22C55E;color:#15803D}
+.notif.r{border-left:3px solid var(--red);color:var(--red)}
+.notif.y{border-left:3px solid var(--gold2);color:var(--gold)}
+.notif.b{border-left:3px solid var(--blue);color:var(--blue)}
+@keyframes notif-slide{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+.notif-x{margin-left:auto;cursor:pointer;color:var(--gray300);font-size:18px;line-height:1;flex-shrink:0}
+.notif-x:hover{color:var(--gray700)}
+
+/* ═══════════════════════════ LOGIN ═══ */
+#login-page{position:fixed;inset:0;z-index:100;display:flex;background:var(--white)}
+.lp-left{
+  flex:1;position:relative;overflow:hidden;
+  background:var(--forest);
+}
+.lp-left-img{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  background-image:url('https://images.unsplash.com/photo-1597916829826-02e5bb4a54e0?w=1400&q=80');
+  opacity:.35;mix-blend-mode:luminosity;
+}
+.lp-gradient{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,60,35,.0) 0%,rgba(0,40,25,.8) 100%);
+}
+.lp-left-body{
+  position:relative;z-index:1;height:100%;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:52px 52px;
+}
+.lp-left-body h1{font-size:38px;font-weight:800;color:white;line-height:1.2;letter-spacing:-.8px;margin-bottom:14px}
+.lp-left-body h1 em{font-style:normal;color:#86EFAC}
+.lp-left-body p{font-size:14px;color:rgba(255,255,255,.65);line-height:1.75;max-width:360px;margin-bottom:28px}
+.lp-tags{display:flex;gap:8px;flex-wrap:wrap}
+.lp-tag{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:4px 13px;font-size:11px;color:rgba(255,255,255,.8);font-weight:600;letter-spacing:.2px;
+}
+.lp-right{
+  width:460px;display:flex;align-items:center;justify-content:center;
+  padding:52px 48px;background:var(--white);
+}
+.lp-form{width:100%;max-width:340px}
+.lp-logo{display:flex;align-items:center;gap:11px;margin-bottom:40px}
+.lp-logo-mark{
+  width:42px;height:42px;border-radius:11px;
+  background:linear-gradient(145deg,var(--forest),var(--forest2));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(0,97,60,.3);
+}
+.lp-logo-mark svg{width:22px;height:22px;fill:white}
+.lp-logo-word{font-size:20px;font-weight:800;color:var(--forest);letter-spacing:-.4px}
+.lp-form h2{font-size:26px;font-weight:800;color:var(--gray900);letter-spacing:-.5px;margin-bottom:6px}
+.lp-form .lp-desc{font-size:14px;color:var(--gray400);margin-bottom:30px}
+.fl{margin-bottom:18px}
+.fl label{display:block;font-size:12px;font-weight:700;color:var(--gray500);margin-bottom:7px;letter-spacing:.2px}
+.fi{
+  width:100%;padding:11px 15px;background:var(--gray50);
+  border:1.5px solid var(--gray200);border-radius:9px;
+  color:var(--gray900);font-size:14px;transition:.2s;
+}
+.fi:focus{border-color:var(--forest);background:var(--white);box-shadow:0 0 0 4px rgba(0,97,60,.08)}
+.btn-submit{
+  width:100%;padding:13px;background:var(--forest);color:white;
+  border-radius:10px;font-size:15px;font-weight:700;transition:.2s;
+  box-shadow:0 4px 16px rgba(0,97,60,.28);margin-top:4px;
+}
+.btn-submit:hover{background:var(--forest2);box-shadow:0 6px 24px rgba(0,97,60,.32);transform:translateY(-1px)}
+.btn-submit:active{transform:none}
+.lerr{color:var(--red);font-size:12px;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
+.ltog{text-align:center;margin-top:18px;font-size:13px;color:var(--gray400)}
+.ltog a{color:var(--forest);font-weight:700;cursor:pointer}
+.ltog a:hover{text-decoration:underline}
+
+@media(max-width:860px){.lp-left{display:none}.lp-right{width:100%}}
+/* ─── GAS SCALE ──────────────────────────────────────────── */
+.gas-scale-row{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:8px;margin-bottom:6px;transition:.2s;border:1.5px solid transparent}
+.gas-scale-row.active-0{background:#DCFCE7;border-color:#86EFAC}
+.gas-scale-row.active-1{background:#FEF9C3;border-color:#FCD34D}
+.gas-scale-row.active-2{background:#FFEDD5;border-color:#FCA5A5}
+.gas-scale-row.active-3{background:#FEE2E2;border-color:#F87171;animation:crit 1.4s ease-in-out infinite}
+.gs-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.gs-lbl{font-size:12px;font-weight:800;color:var(--gray900);letter-spacing:.3px}
+.gs-desc{font-size:11px;color:var(--gray400);margin-top:2px}
+/* ─── SHELF ML CARDS ─────────────────────────────────────── */
+.ml-shelf-card{background:var(--white);border:1px solid var(--gray100);border-radius:10px;overflow:hidden;box-shadow:var(--sh-xs);transition:.2s}
+.ml-shelf-card:hover{box-shadow:var(--sh-sm)}
+.ml-shelf-card.AMAN      {border-top:3px solid #16A34A}
+.ml-shelf-card.WASPADA   {border-top:3px solid var(--gold)}
+.ml-shelf-card.TIDAK_AMAN{border-top:3px solid #EA580C}
+.ml-shelf-card.KRITIS    {border-top:3px solid var(--red)}
+.mlsc-body{padding:14px 16px}
+.mlsc-name{font-size:13px;font-weight:700;color:var(--gray900);margin-bottom:2px}
+.mlsc-ref{font-family:var(--mono);font-size:9px;color:var(--gray300);letter-spacing:.3px;margin-bottom:10px}
+.mlsc-days{font-family:var(--mono);font-size:36px;font-weight:500;line-height:1}
+.mlsc-days.AMAN      {color:#16A34A}
+.mlsc-days.WASPADA   {color:var(--gold)}
+.mlsc-days.TIDAK_AMAN{color:#EA580C}
+.mlsc-days.KRITIS    {color:var(--red)}
+.mlsc-unit{font-size:12px;font-weight:400;color:var(--gray400);margin-left:3px}
+.mlsc-badge{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;margin:6px 0;letter-spacing:.4px}
+.mlsc-badge.AMAN      {background:#DCFCE7;color:#15803D}
+.mlsc-badge.WASPADA   {background:#FEF9C3;color:#A16207}
+.mlsc-badge.TIDAK_AMAN{background:#FFEDD5;color:#C2410C}
+.mlsc-badge.KRITIS    {background:#FEE2E2;color:#B91C1C}
+.mlsc-bar{height:4px;background:var(--gray100);border-radius:3px;margin:8px 0 6px;overflow:hidden}
+.mlsc-prog{height:100%;border-radius:3px}
+.mlsc-prog.AMAN      {background:linear-gradient(90deg,#16A34A,#22C55E)}
+.mlsc-prog.WASPADA   {background:linear-gradient(90deg,#D97706,#F59E0B)}
+.mlsc-prog.TIDAK_AMAN{background:linear-gradient(90deg,#EA580C,#F97316)}
+.mlsc-prog.KRITIS    {background:linear-gradient(90deg,#DC2626,#EF4444)}
+.mlsc-narasi{font-size:11px;color:var(--gray400);line-height:1.65}
+/* ─── TREND BOXES ─────────────────────────────────────────── */
+.trend-box{background:var(--gray50);border:1px solid var(--gray100);border-radius:9px;padding:18px 20px}
+.trend-lbl{font-size:10px;font-weight:700;color:var(--gray400);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
+.trend-cur{font-family:var(--mono);font-size:18px;color:var(--gray400);margin-bottom:4px}
+.trend-arrow{font-size:20px;margin:0 6px}
+.trend-pred{font-family:var(--mono);font-size:40px;font-weight:500;color:var(--gray900);line-height:1}
+.trend-unit{font-size:14px;color:var(--gray400);margin-left:2px}
+.trend-delta{font-size:12px;margin-top:5px;font-family:var(--mono)}
+.trend-delta.up  {color:var(--red)}
+.trend-delta.down{color:var(--forest)}
+.trend-delta.flat{color:var(--gray400)}
+</style>
+.rep-hash{font-family:var(--mono);font-size:11px;color:var(--gray300);letter-spacing:.3px}
+.integrity-ok  {background:#DCFCE7;color:#15803D;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700}
+.integrity-fail{background:#FEE2E2;color:#B91C1C;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700}
+.rep-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.rep-stat-box{background:var(--gray50);border:1px solid var(--gray100);border-radius:7px;padding:12px 14px}
+.rep-stat-lbl{font-size:10px;font-weight:700;color:var(--gray300);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.rep-stat-val{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--gray900)}
+</style>
+</head>
+<body>
+
+<!-- ────────────── LOGIN ────────────── -->
+<div id="login-page">
+  <div class="lp-left">
+    <div class="lp-left-img"></div>
+    <div class="lp-gradient"></div>
+    <div class="lp-left-body">
+      <h1>Monitoring Gudang Pangan<br><em>Cerdas dan Aman</em></h1>
+      <p>Sistem IoT berbasis enkripsi AES-256-GCM dengan analisis kecerdasan buatan untuk memastikan kualitas pangan program MBG tetap terjaga.</p>
+      <div class="lp-tags">
+        <span class="lp-tag">AES-256-GCM</span>
+        <span class="lp-tag">Gemini AI</span>
+        <span class="lp-tag">SNI &amp; Codex Alimentarius</span>
+        <span class="lp-tag">Real-time IoT</span>
+      </div>
+    </div>
+  </div>
+  <div class="lp-right">
+    <div class="lp-form">
+      <div class="lp-logo">
+        <div class="lp-logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21H5.71C5.93 20.57 6.17 20.14 6.43 19.73C7.55 17.96 9.24 17 11 17C12.47 17 13.84 17.68 14.9 18.73C15.71 19.54 16.46 20.72 16.57 21H18.54C16.54 16.3 16 11.41 17 8Z"/></svg>
+        </div>
+        <div class="lp-logo-word">SentinelFood</div>
+      </div>
+
+      <div id="lf-login">
+        <h2>Selamat Datang</h2>
+        <p class="lp-desc">Masuk ke sistem monitoring gudang</p>
+        <div class="fl"><label>Username</label><input class="fi" id="lUser" type="text" placeholder="username" autocomplete="username"></div>
+        <div class="fl"><label>Password</label><input class="fi" id="lPass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+        <button class="btn-submit" onclick="doLogin()">Masuk</button>
+        <div class="lerr" id="loginErr"></div>
+        <div class="ltog">Belum punya akun? <a onclick="showReg()">Daftar</a></div>
+      </div>
+
+      <div id="lf-reg" style="display:none">
+        <h2>Buat Akun</h2>
+        <p class="lp-desc">Daftarkan akun untuk akses sistem</p>
+        <div class="fl"><label>Username</label><input class="fi" id="rUser" type="text" placeholder="pilih username"></div>
+        <div class="fl"><label>Password</label><input class="fi" id="rPass" type="password" placeholder="min 6 karakter"></div>
+        <button class="btn-submit" onclick="doRegister()">Daftar</button>
+        <div class="lerr" id="regErr"></div>
+        <div class="ltog">Sudah punya akun? <a onclick="showLogin()">Masuk</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────── APP ────────────── -->
+<div id="app">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="tb-brand">
+      <div class="tb-mark">
+        <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21H5.71C5.93 20.57 6.17 20.14 6.43 19.73C7.55 17.96 9.24 17 11 17C12.47 17 13.84 17.68 14.9 18.73C15.71 19.54 16.46 20.72 16.57 21H18.54C16.54 16.3 16 11.41 17 8Z"/></svg>
+      </div>
+      <div>
+        <div class="tb-wordmark">SentinelFood</div>
+      </div>
+    </div>
+    <div class="tb-gap"></div>
+    <div id="topbar-clock">--:--:--</div>
+    <div class="status-chip live" id="conn-chip">
+      <div class="s-dot"></div><span id="conn-txt">Online</span>
+    </div>
+    <div class="tb-user">
+      <div class="tb-avatar" id="tb-av">A</div>
+      <span class="tb-uname" id="tb-un">Admin</span>
+    </div>
+    <button class="tb-logout" onclick="doLogout()">Keluar</button>
+  </div>
+
+  <div id="body-wrap">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div class="sb-sec">
+        <div class="sb-lbl">Monitoring</div>
+        <div class="sb-item active" data-p="dashboard" onclick="go('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="sb-item" data-p="monitoring" onclick="go('monitoring')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Grafik Sensor
+        </div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-sec">
+        <div class="sb-lbl">Analisis</div>
+        <div class="sb-item" data-p="analisis" onclick="go('analisis')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+          Analisis Pangan
+        </div>
+        <div class="sb-item" data-p="chat" onclick="go('chat')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Chat AI
+        </div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-sec">
+        <div class="sb-lbl">Sistem</div>
+        <div class="sb-item" data-p="kontrol" onclick="go('kontrol')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Kontrol
+        </div>
+        <div class="sb-item" data-p="ml" onclick="go('ml')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          ML Insight
+        </div>
+        <div class="sb-item" data-p="laporan" onclick="go('laporan')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Laporan
+        </div>
+        <div class="sb-item" data-p="log" onclick="go('log')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Log &amp; Alert
+        </div>
+        <div class="sb-item" data-p="keamanan" onclick="go('keamanan')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Keamanan
+        </div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-footer-card">
+          <strong>SentinelFood v2.0</strong>
+          <span>ESP32 · AES-256-GCM<br>Gemini AI · Telegram Bot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGES -->
+    <div id="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page on" id="p-dashboard">
+        <div class="pg-hdr">
+          <div>
+            <div class="pg-title">Dashboard</div>
+            <div class="pg-sub">Kondisi gudang pangan secara real-time · <span id="last-ts" style="font-family:var(--mono);font-size:11px">--</span></div>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-photo" id="hero-photo" style="background-image:url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=1400&q=80')"></div>
+          <div class="hero-scrim"></div>
+          <div class="hero-pill" id="hero-pill">Normal</div>
+          <div class="hero-body">
+            <div class="hero-text">
+              <h1 id="hero-title">Kondisi Gudang Aman</h1>
+              <p id="hero-desc">Semua parameter dalam batas normal sesuai standar SNI</p>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat"><div class="hero-stat-n" id="hs-s">--</div><div class="hero-stat-l">Suhu °C</div></div>
+              <div class="hero-stat"><div class="hero-stat-n" id="hs-h">--</div><div class="hero-stat-l">Kelembapan %</div></div>
+              <div class="hero-stat"><div class="hero-stat-n" id="hs-g">--</div><div class="hero-stat-l">Gas ppm</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sensor cards -->
+        <div class="g3">
+          <div class="sc NORMAL" id="sc-s">
+            <div class="sc-stripe"></div>
+            <div class="sc-top">
+              <span class="sc-lbl">Suhu Ruangan</span>
+              <div class="sc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+              </div>
+            </div>
+            <span class="sc-val" id="v-s">--</span><span class="sc-unit">°C</span>
+            <div><span class="sc-badge" id="b-s">Normal</span></div>
+            <div class="sc-bars" id="bar-s"></div>
+          </div>
+          <div class="sc NORMAL" id="sc-h">
+            <div class="sc-stripe"></div>
+            <div class="sc-top">
+              <span class="sc-lbl">Kelembapan</span>
+              <div class="sc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+            </div>
+            <span class="sc-val" id="v-h">--</span><span class="sc-unit">%</span>
+            <div><span class="sc-badge" id="b-h">Normal</span></div>
+            <div class="sc-bars" id="bar-h"></div>
+          </div>
+          <div class="sc AMAN" id="sc-g">
+            <div class="sc-stripe"></div>
+            <div class="sc-top">
+              <span class="sc-lbl">Gas / Asap MQ-2</span>
+              <div class="sc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8"/><path d="M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2"/></svg>
+              </div>
+            </div>
+            <span class="sc-val" id="v-g">--</span><span class="sc-unit">ppm</span>
+            <div><span class="sc-badge" id="b-g">Aman</span></div>
+            <div class="sc-bars" id="bar-g"></div>
+          </div>
+        </div>
+
+        <!-- Actuator + Stats -->
+        <div class="g4">
+          <div class="ac fan" id="ac-fan">
+            <img class="ac-photo" id="aph-fan"
+              src="https://images.unsplash.com/photo-1581093806997-124204d9fa9d?w=400&q=80"
+              alt="Kipas">
+            <div class="ac-body">
+              <div class="ac-lbl">Kipas</div>
+              <div class="ac-state" id="ast-fan">Mati</div>
+              <div class="ac-gpio">GPIO 2 — Built-in LED</div>
+              <div class="ac-btns">
+                <button class="btn-on" onclick="ctrl('kipas','on')">Nyala</button>
+                <button class="btn-off" onclick="ctrl('kipas','off')">Mati</button>
+              </div>
+            </div>
+          </div>
+          <div class="ac light" id="ac-light">
+            <img class="ac-photo" id="aph-light"
+              src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&q=80"
+              alt="Lampu">
+            <div class="ac-body">
+              <div class="ac-lbl">Lampu</div>
+              <div class="ac-state" id="ast-light">Mati</div>
+              <div class="ac-gpio">GPIO 4 — LED + 220Ω</div>
+              <div class="ac-btns">
+                <button class="btn-on" onclick="ctrl('lampu','on')">Nyala</button>
+                <button class="btn-off" onclick="ctrl('lampu','off')">Mati</button>
+              </div>
+            </div>
+          </div>
+          <div class="card s2" style="padding:18px 20px">
+            <div class="card-hd">Statistik 24 Jam</div>
+            <div class="stat-grid">
+              <div class="sbox"><div class="sbox-l">Suhu Rata</div><div class="sbox-v" id="st-s">--<span class="sbox-u">°C</span></div></div>
+              <div class="sbox"><div class="sbox-l">RH Rata</div><div class="sbox-v" id="st-h">--<span class="sbox-u">%</span></div></div>
+              <div class="sbox"><div class="sbox-l">Gas Maks</div><div class="sbox-v" id="st-g">--<span class="sbox-u">ppm</span></div></div>
+              <div class="sbox"><div class="sbox-l">Total Data</div><div class="sbox-v" id="st-n" style="color:var(--forest)">--</div></div>
+              <div class="sbox"><div class="sbox-l">Alert</div><div class="sbox-v" id="st-a" style="color:var(--red)">--</div></div>
+              <div class="sbox"><div class="sbox-l">Perangkat</div><div class="sbox-v" id="st-d" style="font-size:14px;color:var(--blue)">--</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shelf-life quick -->
+        <div class="card">
+          <div class="card-hd">Estimasi Umur Simpan — klik kartu untuk analisis mendalam</div>
+          <div class="g3" id="sl-quick"></div>
+        </div>
+      </div>
+
+      <!-- ── ANALISIS ── -->
+      <div class="page" id="p-analisis">
+        <div class="pg-hdr">
+          <div>
+            <div class="pg-title">Analisis Kualitas Pangan</div>
+            <div class="pg-sub">Model Arrhenius · Gemini AI · Referensi SNI &amp; Codex Alimentarius</div>
+          </div>
+        </div>
+
+        <div class="analyze-shell">
+          <div class="analyze-bar">
+            <h3>Analisis Komoditas</h3>
+            <select class="a-sel" id="komSel">
+              <option value="beras">Beras</option>
+              <option value="jagung">Jagung</option>
+              <option value="kedelai">Kedelai</option>
+              <option value="tepung_terigu">Tepung Terigu</option>
+              <option value="gula_pasir">Gula Pasir</option>
+              <option value="minyak_goreng">Minyak Goreng</option>
+            </select>
+            <input class="a-q" id="komQ" placeholder="Pertanyaan spesifik (opsional)...">
+            <button class="btn-analyze" id="btnA" onclick="runAnalysis()">Analisis Sekarang</button>
+          </div>
+          <div class="analyze-body" id="analyzeBody">
+            <div class="a-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p>Pilih komoditas dan klik <strong>Analisis Sekarang</strong> untuk mendapatkan estimasi umur simpan berdasarkan kondisi gudang real-time, faktor risiko, dan rekomendasi tindakan berbasis standar SNI / Codex Alimentarius menggunakan Gemini AI.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">Umur Simpan Semua Komoditas</div>
+          <div class="g3" id="sl-all"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">Threshold Berdasarkan SNI &amp; Codex Alimentarius</div>
+          <div class="g3" id="thresh-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── MONITORING ── -->
+      <div class="page" id="p-monitoring">
+        <div class="pg-hdr">
+          <div><div class="pg-title">Grafik Sensor</div><div class="pg-sub">60 data terakhir · refresh otomatis</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd">Suhu (°C)</div>
+          <div class="chart-box"><canvas id="cS"></canvas></div>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">Kelembapan (%)</div>
+            <div class="chart-box"><canvas id="cH"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">Gas / Asap (ppm)</div>
+            <div class="chart-box"><canvas id="cG"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">Statistik Lengkap 24 Jam</div>
+          <table class="tbl">
+            <thead><tr><th>Parameter</th><th>N</th><th>Rata-rata</th><th>Median</th><th>Min</th><th>Maks</th><th>Std Dev</th></tr></thead>
+            <tbody id="statsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── KONTROL ── -->
+      <div class="page" id="p-kontrol">
+        <div class="pg-hdr"><div><div class="pg-title">Kontrol Aktuator</div><div class="pg-sub">Kendalikan perangkat di gudang</div></div></div>
+        <div class="g2">
+          <div class="card" style="padding:0;overflow:hidden">
+            <img src="https://images.unsplash.com/photo-1581093806997-124204d9fa9d?w=600&q=80"
+              id="ck-img" style="width:100%;height:140px;object-fit:cover;display:block;filter:grayscale(.5);transition:.4s">
+            <div style="padding:20px 22px">
+              <div class="card-hd" style="margin-bottom:12px">Kipas (GPIO 2)</div>
+              <div style="font-size:17px;font-weight:700;color:var(--gray500);margin-bottom:4px" id="ck-st">Mati</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--gray300);margin-bottom:18px" id="ck-by">Dikendalikan oleh: —</div>
+              <div style="display:flex;gap:10px">
+                <button class="btn btn-green" onclick="ctrl('kipas','on')">Nyalakan</button>
+                <button class="btn btn-red"   onclick="ctrl('kipas','off')">Matikan</button>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80"
+              id="cl-img" style="width:100%;height:140px;object-fit:cover;display:block;filter:grayscale(.5);transition:.4s">
+            <div style="padding:20px 22px">
+              <div class="card-hd" style="margin-bottom:12px">Lampu (GPIO 4)</div>
+              <div style="font-size:17px;font-weight:700;color:var(--gray500);margin-bottom:4px" id="cl-st">Mati</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--gray300);margin-bottom:18px" id="cl-by">Dikendalikan oleh: —</div>
+              <div style="display:flex;gap:10px">
+                <button class="btn btn-amber" onclick="ctrl('lampu','on')">Nyalakan</button>
+                <button class="btn btn-red"   onclick="ctrl('lampu','off')">Matikan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">Log Kontrol Terbaru</div>
+          <table class="tbl"><thead><tr><th>Waktu</th><th>Perangkat</th><th>Perintah</th><th>Sumber</th></tr></thead><tbody id="ctrlBody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ── CHAT AI ── -->
+      <div class="page" id="p-chat">
+        <div class="pg-hdr"><div><div class="pg-title">Chat AI</div><div class="pg-sub">Gemini AI · akses data sensor real-time via MCP</div></div></div>
+        <div class="card" style="flex:1">
+          <div style="background:var(--mint);border-left:3px solid var(--forest);border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--gray500);line-height:1.7">
+            AI memiliki akses penuh ke data sensor real-time, statistik 24 jam, dan threshold standar pangan. Tanyakan kondisi gudang, estimasi umur simpan, atau kendalikan perangkat melalui teks.
+          </div>
+          <div id="chatBox"></div>
+          <div class="chat-row">
+            <input class="chat-in" id="chatInp" placeholder="Tanyakan tentang kondisi gudang atau kualitas pangan...">
+            <button class="chat-send" onclick="sendChat()">Kirim</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOG ── -->
+      <div class="page" id="p-log">
+        <div class="pg-hdr"><div><div class="pg-title">Log &amp; Alert</div><div class="pg-sub">Riwayat kejadian dan kontrol aktuator</div></div></div>
+        <div class="card">
+          <div class="card-hd">Riwayat Alert</div>
+          <table class="tbl"><thead><tr><th>Waktu</th><th>Jenis</th><th>Pesan</th><th>Nilai</th></tr></thead><tbody id="alertBody"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-hd">Log Kontrol Aktuator</div>
+          <table class="tbl"><thead><tr><th>Waktu</th><th>Perangkat</th><th>Perintah</th><th>Sumber</th></tr></thead><tbody id="logBody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ── KEAMANAN ── -->
+      <div class="page" id="p-keamanan">
+        <div class="pg-hdr"><div><div class="pg-title">Keamanan Sistem</div><div class="pg-sub">Enkripsi end-to-end AES-256-GCM</div></div></div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">Status Enkripsi</div>
+            <table class="sec-tbl">
+              <tr><td>Algoritma</td><td>AES-256-GCM (AEAD)</td></tr>
+              <tr><td>Panjang Kunci</td><td>256-bit / 32 byte</td></tr>
+              <tr><td>Nonce</td><td>96-bit, unik per transmisi</td></tr>
+              <tr><td>Authentication Tag</td><td>128-bit</td></tr>
+              <tr><td>Probabilitas Pemalsuan</td><td>2⁻¹²⁸ ≈ 0</td></tr>
+              <tr><td>Implementasi ESP32</td><td>mbedTLS built-in</td></tr>
+              <tr><td>Implementasi Server</td><td>Python cryptography</td></tr>
+              <tr><td>Auth Dashboard</td><td>SHA-256 hash</td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-hd">Uji Integritas 5 Skenario</div>
+            <table class="tbl">
+              <thead><tr><th>Skenario Serangan</th><th>Hasil</th></tr></thead>
+              <tbody>
+                <tr><td>Data valid, kunci benar</td><td><span class="chip chip-g">HTTP 200 OK</span></td></tr>
+                <tr><td>Kunci AES salah</td><td><span class="chip chip-r">HTTP 400 Ditolak</span></td></tr>
+                <tr><td>Ciphertext dimodifikasi</td><td><span class="chip chip-r">HTTP 400 Ditolak</span></td></tr>
+                <tr><td>Nonce dimodifikasi</td><td><span class="chip chip-r">HTTP 400 Ditolak</span></td></tr>
+                <tr><td>Plaintext tanpa enkripsi</td><td><span class="chip chip-r">HTTP 400 Ditolak</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">Alur Sistem</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;font-size:12.5px;font-weight:600">
+            <span style="background:var(--mint);color:var(--forest);padding:7px 14px;border-radius:7px;border:1px solid var(--mint2)">ESP32</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--gray50);color:var(--gray500);padding:7px 14px;border-radius:7px;border:1px solid var(--gray100)">DHT11 + MQ-2</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:#DCFCE7;color:#15803D;padding:7px 14px;border-radius:7px;border:1px solid #86EFAC">AES-256-GCM</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--gray50);color:var(--gray500);padding:7px 14px;border-radius:7px;border:1px solid var(--gray100)">HTTP POST</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--mint);color:var(--forest);padding:7px 14px;border-radius:7px;border:1px solid var(--mint2)">Flask + Decrypt</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--gray50);color:var(--gray500);padding:7px 14px;border-radius:7px;border:1px solid var(--gray100)">SQLite3</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--gold-bg);color:var(--gold);padding:7px 14px;border-radius:7px;border:1px solid var(--gold2)">Gemini AI</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8D0C0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="background:var(--blue-bg);color:var(--blue);padding:7px 14px;border-radius:7px;border:1px solid #93C5FD">Telegram + Web</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ── ML INSIGHT ── -->
+      <!-- ── ML INSIGHT ── -->
+      <div class="page" id="p-ml">
+        <div class="pg-hdr">
+          <div>
+            <div class="pg-title">ML Insight</div>
+            <div class="pg-sub">3 Model · Umur simpan per komoditas · Keamanan konsumsi · Deteksi anomali gas</div>
+          </div>
+          <button class="btn btn-outline" onclick="loadML()" style="font-size:12px">Refresh</button>
+        </div>
+
+        <!-- Selector + Simulasi -->
+        <div class="card">
+          <div class="card-hd">Analisis Komoditas</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:6px">KOMODITAS</div>
+              <select id="ml-kom" class="a-sel" onchange="loadML()">
+                <option value="beras">Beras</option>
+                <option value="jagung">Jagung</option>
+                <option value="kedelai">Kedelai</option>
+                <option value="tepung_terigu">Tepung Terigu</option>
+                <option value="gula_pasir">Gula Pasir</option>
+                <option value="minyak_goreng">Minyak Goreng</option>
+              </select>
+            </div>
+            <label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--gray500);cursor:pointer;padding-bottom:2px">
+              <input type="checkbox" id="ml-sim-toggle" onchange="toggleSim()"> Simulasi kondisi manual
+            </label>
+          </div>
+          <div id="ml-sim-wrap" style="display:none;margin-top:14px;padding:14px;background:var(--gray50);border:1px solid var(--gray100);border-radius:8px">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:5px">SUHU (°C)</div>
+                <input type="number" id="ml-s-s" value="25" min="0" max="60" step="0.5" class="fi" style="width:110px;padding:8px 12px">
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:5px">KELEMBAPAN (%)</div>
+                <input type="number" id="ml-s-h" value="65" min="0" max="100" step="0.5" class="fi" style="width:110px;padding:8px 12px">
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:5px">GAS (ppm)</div>
+                <input type="number" id="ml-s-g" value="100" min="0" max="1000" step="10" class="fi" style="width:110px;padding:8px 12px">
+              </div>
+              <button class="btn btn-primary" onclick="runSim()">Jalankan Simulasi</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Result cards -->
+        <div class="g3">
+          <div class="card" id="ml-c1">
+            <div class="card-hd">Model 1 — Umur Simpan</div>
+            <div style="color:var(--gray300);font-size:13px">Memuat...</div>
+          </div>
+          <div class="card" id="ml-c2">
+            <div class="card-hd">Model 2 — Keamanan Konsumsi</div>
+            <div style="color:var(--gray300);font-size:13px">Memuat...</div>
+          </div>
+          <div class="card" id="ml-c3">
+            <div class="card-hd">Model 3 — Anomali Gas</div>
+            <div style="color:var(--gray300);font-size:13px">Memuat...</div>
+          </div>
+        </div>
+
+        <!-- Penjelasan + Rekomendasi -->
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">Penjelasan Naratif</div>
+            <div id="ml-explain"><div style="color:var(--gray300);font-size:13px">Memuat...</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">Rekomendasi Tindakan</div>
+            <div id="ml-recs"><div style="color:var(--gray300);font-size:13px">Memuat...</div></div>
+          </div>
+        </div>
+
+        <!-- Metodologi -->
+        <div class="card">
+          <div class="card-hd">Metodologi &amp; Dataset</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+            <div style="background:var(--gray50);border:1px solid var(--gray100);border-radius:8px;padding:14px">
+              <div style="font-size:10px;font-weight:700;color:var(--forest);letter-spacing:.7px;margin-bottom:6px">MODEL 1 · UMUR SIMPAN</div>
+              <div style="font-size:13px;font-weight:700;color:var(--gray900);margin-bottom:4px">Random Forest Regressor</div>
+              <div style="font-size:12px;color:var(--gray400);line-height:1.75">"Beras pada 30°C dan RH 75% dapat bertahan 142 hari." Prediksi umur simpan berdasarkan komoditas + kondisi gudang. R² ≈ 0.988.</div>
+            </div>
+            <div style="background:var(--gray50);border:1px solid var(--gray100);border-radius:8px;padding:14px">
+              <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.7px;margin-bottom:6px">MODEL 2 · KEAMANAN</div>
+              <div style="font-size:13px;font-weight:700;color:var(--gray900);margin-bottom:4px">Random Forest Classifier</div>
+              <div style="font-size:12px;color:var(--gray400);line-height:1.75">"Jagung: BERISIKO (78% confidence)." Klasifikasi AMAN / BERISIKO / TIDAK_AMAN dengan probabilitas per kelas. Accuracy ≈ 92.9%.</div>
+            </div>
+            <div style="background:var(--gray50);border:1px solid var(--gray100);border-radius:8px;padding:14px">
+              <div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:6px">MODEL 3 · ANOMALI GAS</div>
+              <div style="font-size:13px;font-weight:700;color:var(--gray900);margin-bottom:4px">Isolation Forest</div>
+              <div style="font-size:12px;color:var(--gray400);line-height:1.75">"Pola gas tidak normal." Dilatih pada kondisi normal. Sensitif terhadap lonjakan mendadak: kebakaran, LPG, fumigan.</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;background:var(--mint);border-left:3px solid var(--forest);border-radius:6px;padding:12px 16px;font-size:12px;color:var(--gray500);line-height:1.8">
+            <strong style="color:var(--gray700)">Dataset:</strong> 3.000 sampel synthetic physics-based dari Arrhenius Q10=2 + ERH Labuza (1984) + threshold SNI / Codex Alimentarius.
+            Valid sejak hari pertama. Noise sensor DHT11/MQ-2 disimulasikan (±0.5°C, ±1%RH, ±10ppm).
+          </div>
+          <div id="ml-status-row" style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--gray300)">Memuat status model...</div>
+        </div>
+      </div>
+
+      <!-- ── LAPORAN ── -->
+      <div class="page" id="p-laporan">
+        <div class="pg-hdr">
+          <div>
+            <div class="pg-title">Laporan Terproteksi</div>
+            <div class="pg-sub">Laporan dikunci dengan SHA-256 + HMAC · Hanya owner yang dapat membuat &amp; memverifikasi</div>
+          </div>
+        </div>
+
+        <!-- Generate (owner only) -->
+        <div class="card" id="report-gen-card">
+          <div class="card-hd">Generate Laporan Baru</div>
+          <div id="report-owner-only" style="display:none">
+            <div style="background:var(--mint);border-left:3px solid var(--forest);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--gray500);line-height:1.7">
+              Laporan akan dikunci dengan hash SHA-256 + HMAC-SHA256 menggunakan kunci server. Setiap perubahan pada data laporan akan terdeteksi saat verifikasi. Operator tidak dapat membuat atau mengubah laporan.
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:6px">DARI TANGGAL</div>
+                <input type="date" id="rep-dari" class="fi" style="width:160px;padding:8px 12px">
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:6px">SAMPAI TANGGAL</div>
+                <input type="date" id="rep-sampai" class="fi" style="width:160px;padding:8px 12px">
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray400);margin-bottom:6px">KOMODITAS REFERENSI</div>
+                <select id="rep-kom" class="fi" style="width:180px;padding:8px 12px">
+                  <option value="beras">Beras</option>
+                  <option value="jagung">Jagung</option>
+                  <option value="kedelai">Kedelai</option>
+                  <option value="tepung_terigu">Tepung Terigu</option>
+                  <option value="gula_pasir">Gula Pasir</option>
+                  <option value="minyak_goreng">Minyak Goreng</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="btnGenRep" onclick="generateReport()">Generate Laporan</button>
+            </div>
+          </div>
+          <div id="report-no-owner" style="display:none;background:var(--red-bg);border-left:3px solid var(--red);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--gray500)">
+            Anda login sebagai <strong>operator</strong>. Generate laporan hanya untuk <strong>pemilik sistem (owner)</strong>. Silakan hubungi admin.
+          </div>
+          <div id="report-gen-result" style="margin-top:16px"></div>
+        </div>
+
+        <!-- Daftar laporan -->
+        <div class="card">
+          <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+            <span>Daftar Laporan</span>
+            <button class="btn btn-outline" onclick="loadReports()" style="font-size:11px;padding:5px 12px">Refresh</button>
+          </div>
+          <table class="tbl" id="rep-table">
+            <thead><tr><th>ID</th><th>Dibuat</th><th>Periode</th><th>Dibuat Oleh</th><th>Hash (8 char)</th><th>Aksi</th></tr></thead>
+            <tbody id="repBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Detail laporan -->
+        <div class="card" id="rep-detail-card" style="display:none">
+          <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center">
+            <span id="rep-detail-title">Detail Laporan</span>
+            <button class="btn btn-outline" onclick="$('rep-detail-card').style.display='none'" style="font-size:11px;padding:5px 12px">Tutup</button>
+          </div>
+          <div id="rep-detail-body"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /body-wrap -->
+</div><!-- /app -->
+
+<div id="notif-wrap"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ─── UTILS (harus di atas semua) ──────────────────────────
+const $ = id => document.getElementById(id);
+function fmtTs(ts)    { try{ return new Date(ts).toLocaleString('id-ID') }catch(e){ return ts||'--' } }
+function fmtShort(ts) { try{ const d=new Date(ts); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}` }catch(e){ return '--' } }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') }
+
+// ─── CONFIG ───────────────────────────────────────────────
+const API = '';
+const PHOTOS = {
+  beras:        'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=500&q=75',
+  jagung:       'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&q=75',
+  kedelai:      'https://images.unsplash.com/photo-1599599810694-b5b37304c041?w=500&q=75',
+  tepung_terigu:'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&q=75',
+  gula_pasir:   'https://images.unsplash.com/photo-1559181567-c3190ca9d5db?w=500&q=75',
+  minyak_goreng:'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&q=75',
+};
+
+// ─── STATE ────────────────────────────────────────────────
+let buf = {s:[],h:[],g:[],ts:[]};
+let charts = {};
+
+// ─── LOGIN ────────────────────────────────────────────────
+function showReg()  { $('lf-login').style.display='none'; $('lf-reg').style.display=''; }
+function showLogin(){ $('lf-reg').style.display='none';   $('lf-login').style.display=''; }
+async function doLogin() {
+  const u = $('lUser').value.trim(), p = $('lPass').value;
+  if(!u||!p){ $('loginErr').textContent='Isi semua kolom.'; return; }
+  try {
+    const r = await fetch(`${API}/api/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+    const d = await r.json();
+    if(r.ok) { showApp(d); } else { $('loginErr').textContent = d.message||'Login gagal'; }
+  } catch(e) { $('loginErr').textContent = 'Server tidak tersedia'; }
+}
+async function doRegister() {
+  const u = $('rUser').value.trim(), p = $('rPass').value;
+  const r = await fetch(`${API}/api/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+  const d = await r.json();
+  if(r.ok) { showLogin(); $('loginErr').textContent = 'Akun dibuat, silakan masuk.'; }
+  else { $('regErr').textContent = d.error||'Gagal mendaftar'; }
+}
+function showApp(session) {
+  _role = session.role || 'operator';
+  _user = session.username;
+  $('login-page').style.display = 'none';
+  $('app').style.display = 'grid';
+  $('tb-un').textContent = session.username;
+  $('tb-av').textContent = session.username[0].toUpperCase();
+  // Badge role di topbar
+  const badge = document.createElement('span');
+  badge.textContent = _role === 'owner' ? 'Owner' : 'Operator';
+  badge.style.cssText = `font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;`
+    + (_role==='owner' ? 'background:#DCFCE7;color:#15803D' : 'background:#DBEAFE;color:#1D4ED8');
+  $('tb-un').insertAdjacentElement('afterend', badge);
+  initApp();
+}
+function doLogout() {
+  _role = 'operator'; _user = '';
+  $('app').style.display = 'none';
+  $('login-page').style.display = 'flex';
+  $('lUser').value = '';
+  $('lPass').value = '';
+  // hapus badge role lama
+  document.querySelectorAll('#topbar span[style*="border-radius:4px"]').forEach(e => e.remove());
+}
+$('lPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ─── CLOCK ────────────────────────────────────────────────
+setInterval(() => { $('topbar-clock').textContent = new Date().toLocaleString('id-ID'); }, 1000);
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function go(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  $('p-'+name).classList.add('on');
+  document.querySelector(`[data-p="${name}"]`)?.classList.add('active');
+  if(name==='monitoring') renderCharts();
+  if(name==='log')        loadLogs();
+  if(name==='kontrol')    loadCtrlLog();
+  if(name==='analisis')   { loadSlAll(); loadThresh(); }
+  if(name==='ml')         loadML();
+  if(name==='laporan')    initReportPage();
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+function initApp() {
+  fetchLatest(); fetchStats(); fetchHistory(); fetchSlQuick();
+  setInterval(fetchLatest,  8000);
+  setInterval(fetchStats,  30000);
+  setInterval(fetchHistory, 8000);
+  setInterval(fetchSlQuick,30000);
+  initChat();
+}
+
+// ─── SENSOR DATA ──────────────────────────────────────────
+async function fetchLatest() {
+  try {
+    const d = await (await fetch(`${API}/api/latest`)).json();
+    if(d.error) { setConn(false); return; }
+    setConn(true);
+    setSensor('s', d.suhu,       d.status_suhu,  '#00613C');
+    setSensor('h', d.kelembapan, d.status_rh,    '#1A5FA8');
+    setSensor('g', d.smoke,      d.status_smoke, '#C0281E');
+    setAct('fan',   d.kipas, 'fan');
+    setAct('light', d.lampu, 'light');
+    $('hs-s').textContent = d.suhu;
+    $('hs-h').textContent = d.kelembapan;
+    $('hs-g').textContent = d.smoke;
+    $('st-d').textContent = d.device_id||'ESP32';
+    $('last-ts').textContent = fmtTs(d.timestamp);
+    const all = [d.status_suhu, d.status_rh, d.status_smoke];
+    if(all.includes('KRITIS')) {
+      $('hero-title').textContent = 'Kondisi Kritis — Tindakan Diperlukan';
+      $('hero-desc').textContent  = 'Satu atau lebih parameter melampaui batas aman.';
+      $('hero-pill').textContent  = 'Kritis';
+      $('hero-pill').style.background = 'rgba(192,40,30,.7)';
+    } else if(all.includes('PERINGATAN')) {
+      $('hero-title').textContent = 'Perlu Perhatian';
+      $('hero-desc').textContent  = 'Parameter mendekati batas threshold SNI.';
+      $('hero-pill').textContent  = 'Peringatan';
+      $('hero-pill').style.background = 'rgba(200,134,10,.7)';
+    } else {
+      $('hero-title').textContent = 'Kondisi Gudang Aman';
+      $('hero-desc').textContent  = 'Semua parameter dalam batas normal sesuai standar SNI';
+      $('hero-pill').textContent  = 'Normal';
+      $('hero-pill').style.background = 'rgba(255,255,255,.18)';
+    }
+  } catch(e) { setConn(false); }
+}
+function setSensor(k, val, st, color) {
+  $('v-'+k).textContent = val??'--';
+  const lbl = {NORMAL:'Normal',AMAN:'Aman',PERINGATAN:'Peringatan',KRITIS:'Kritis'}[st]||st;
+  $('b-'+k).textContent = lbl;
+  $('sc-'+k).className = 'sc '+st;
+  buf[k].push(parseFloat(val));
+  if(buf[k].length > 30) buf[k].shift();
+  const el = $('bar-'+k); if(!el) return;
+  const mx = Math.max(...buf[k], 1);
+  el.innerHTML = buf[k].map((v,i) =>
+    `<div class="sc-bar" style="height:${Math.round(v/mx*100)}%;background:${color};opacity:${.25+i/buf[k].length*.75}"></div>`
+  ).join('');
+}
+
+// ─── STATS ────────────────────────────────────────────────
+async function fetchStats() {
+  try {
+    const d = await (await fetch(`${API}/api/stats`)).json();
+    if(d.suhu) {
+      $('st-s').innerHTML = d.suhu.rata + '<span class="sbox-u">°C</span>';
+      $('st-h').innerHTML = d.kelembapan.rata + '<span class="sbox-u">%</span>';
+      $('st-g').innerHTML = d.smoke.max + '<span class="sbox-u">ppm</span>';
+    }
+    $('st-n').textContent = d.total_all??'--';
+    $('st-a').textContent = d.alerts_24h??'--';
+    const tb = $('statsBody');
+    if(tb && d.suhu) tb.innerHTML = [['Suhu (°C)',d.suhu],['Kelembapan (%)',d.kelembapan],['Gas/Asap (ppm)',d.smoke]]
+      .map(([n,s]) => `<tr><td>${n}</td><td>${s.n}</td><td>${s.rata}</td><td>${s.median}</td><td>${s.min}</td><td>${s.max}</td><td>${s.std}</td></tr>`).join('');
+  } catch(e) {}
+}
+
+// ─── HISTORY ──────────────────────────────────────────────
+async function fetchHistory() {
+  try {
+    const rows = await (await fetch(`${API}/api/history?limit=60`)).json();
+    if(!Array.isArray(rows)) return;
+    buf.s  = rows.map(r => r.suhu);
+    buf.h  = rows.map(r => r.kelembapan);
+    buf.g  = rows.map(r => r.smoke);
+    buf.ts = rows.map(r => fmtShort(r.timestamp));
+    if($('p-monitoring').classList.contains('on')) renderCharts();
+  } catch(e) {}
+}
+
+// ─── CHARTS ───────────────────────────────────────────────
+function mkChart(id, color, label) {
+  const el = document.getElementById(id); if(!el) return null;
+  return new Chart(el, {
+    type:'line',
+    data:{ labels:[], datasets:[{ data:[], borderColor:color, backgroundColor:color+'14', fill:true, tension:.3, pointRadius:2, borderWidth:1.5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:400},
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(15,28,20,.9)', titleFont:{family:'Geist Mono',size:10}, bodyFont:{family:'Geist Mono',size:12}, padding:10, cornerRadius:8, borderColor:color, borderWidth:1 }},
+      scales:{
+        x:{ grid:{color:'rgba(0,0,0,.04)'}, ticks:{color:'#B8B8B6',font:{family:'Geist Mono',size:9},maxTicksLimit:8} },
+        y:{ grid:{color:'rgba(0,0,0,.04)'}, ticks:{color:'#B8B8B6',font:{family:'Geist Mono',size:9}}, title:{display:true,text:label,color:'#B8B8B6',font:{size:9}} }
+      }
+    }
+  });
+}
+function renderCharts() {
+  [['cS','#00613C','°C',buf.s],['cH','#1A5FA8','%',buf.h],['cG','#C0281E','ppm',buf.g]].forEach(([id,c,u,data]) => {
+    if(charts[id]) charts[id].destroy();
+    charts[id] = mkChart(id, c, u);
+    if(charts[id]) { charts[id].data.labels = buf.ts; charts[id].data.datasets[0].data = data; charts[id].update(); }
+  });
+}
+
+// ─── SHELF-LIFE ───────────────────────────────────────────
+async function fetchSlQuick() {
+  try {
+    const d = await (await fetch(`${API}/api/shelflife`)).json();
+    if(d.komoditas) renderSl('sl-quick', d.komoditas, 3);
+  } catch(e) {}
+}
+async function loadSlAll() {
+  try {
+    const d = await (await fetch(`${API}/api/shelflife`)).json();
+    if(d.komoditas) renderSl('sl-all', d.komoditas, 6);
+  } catch(e) {}
+}
+function renderSl(cid, kom, max) {
+  const el = $(cid); if(!el) return;
+  el.innerHTML = Object.keys(kom).slice(0,max).map(k => {
+    const c = kom[k];
+    return `<div class="sl-card ${c.kondisi}" onclick="onKom('${k}')">
+      <img class="sl-photo" src="${PHOTOS[k]||''}" alt="${c.komoditas}" loading="lazy" onerror="this.style.display='none'">
+      <div class="sl-body">
+        <div class="sl-top">
+          <div><div class="sl-name">${c.komoditas}</div><div class="sl-ref">${c.referensi}</div></div>
+          <div class="sl-cond ${c.kondisi}">${c.kondisi}</div>
+        </div>
+        <div class="sl-days">${c.shelf_life_hari}<span>hari tersisa</span></div>
+        <div class="sl-bar"><div class="sl-prog ${c.kondisi}" style="width:${c.shelf_life_pct}%"></div></div>
+        <div class="sl-meta">Suhu: <b>${c.suhu_optimal}</b> &nbsp;·&nbsp; RH: <b>${c.rh_optimal}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function onKom(k) { go('analisis'); $('komSel').value = k; setTimeout(runAnalysis, 250); }
+
+async function loadThresh() {
+  try {
+    const kom = await (await fetch(`${API}/api/komoditas`)).json();
+    const el = $('thresh-grid'); if(!el) return;
+    el.innerHTML = Object.entries(kom).map(([k,v]) => `
+      <div class="tc">
+        <img class="tc-photo" src="${PHOTOS[k]||''}" alt="${v.nama}" loading="lazy" onerror="this.style.display='none'">
+        <div class="tc-body">
+          <div class="tc-name">${v.nama}</div>
+          <div class="tc-ref">${v.referensi}</div>
+          <div class="tc-row"><span class="tc-k">Suhu</span><span class="tc-v">${v.suhu_min}–${v.suhu_max}°C</span></div>
+          <div class="tc-row"><span class="tc-k">Kelembapan</span><span class="tc-v">${v.rh_min}–${v.rh_max}%</span></div>
+          <div class="tc-row"><span class="tc-k">Gas maks</span><span class="tc-v">${v.smoke_max} ppm</span></div>
+          <div class="tc-sl">Umur simpan optimal: <b>${v.shelf_life_optimal} hari</b></div>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function runAnalysis() {
+  const btn = $('btnA'); btn.disabled = true;
+  const kom = $('komSel').value;
+  const q   = $('komQ').value.trim();
+  const body = $('analyzeBody');
+  body.innerHTML = `<div class="a-loading"><div class="spinner"></div> Menganalisis dengan Gemini AI dan data sensor real-time...</div>`;
+  try {
+    const r = await fetch(`${API}/api/analyze`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({komoditas:kom,pertanyaan:q}) });
+    const d = await r.json();
+    if(r.ok) {
+      const sl = d.shelf_life;
+      body.innerHTML = `
+        <div class="a-result-head">
+          <div class="a-result-num">
+            <div class="big ${sl.kondisi}">${sl.shelf_life_hari}</div>
+            <div class="lbl">HARI TERSISA</div>
+            <div class="sl-cond ${sl.kondisi}" style="margin-top:8px;display:inline-block">${sl.kondisi}</div>
+          </div>
+          <div class="a-vline"></div>
+          <div class="a-result-meta">
+            <strong style="color:var(--gray900)">${sl.komoditas}</strong><br>
+            ${sl.referensi}<br>
+            Suhu optimal: ${sl.suhu_optimal} &nbsp;·&nbsp; RH: ${sl.rh_optimal}<br>
+            Faktor suhu: ×${sl.faktor_suhu} &nbsp;·&nbsp; RH: ×${sl.faktor_rh} &nbsp;·&nbsp; gas: ×${sl.faktor_gas}
+          </div>
+        </div>
+        <div class="a-text">${esc(d.analisis_ai)}</div>`;
+    } else {
+      body.innerHTML = `<p style="color:var(--red);font-size:13px">Gagal: ${d.error||'Error tidak diketahui'}</p>`;
+    }
+  } catch(e) {
+    body.innerHTML = `<p style="color:var(--red);font-size:13px">Tidak dapat menghubungi server</p>`;
+  }
+  btn.disabled = false;
+}
+
+// ─── ACTUATOR ─────────────────────────────────────────────
+async function ctrl(dev, action) {
+  try {
+    const r = await fetch(`${API}/api/control`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({device:dev,action,source:'Dashboard'}) });
+    const d = await r.json();
+    if(r.ok) {
+      setAct('fan',   d.kipas, 'fan');
+      setAct('light', d.lampu, 'light');
+      notif(`${dev==='kipas'?'Kipas':'Lampu'} ${action==='on'?'dinyalakan':'dimatikan'}`, 'g');
+      loadCtrlLog();
+    }
+  } catch(e) { notif('Gagal menghubungi server','r'); }
+}
+function setAct(id, on, cls) {
+  const card = $('ac-'+id);
+  if(card) card.className = 'ac '+(on?cls+' on':cls);
+  const ph = $('aph-'+id);
+  if(ph)   ph.style.filter = on ? 'none' : 'grayscale(.7) brightness(.8)';
+  const st = $('ast-'+id);
+  if(st)   st.textContent = on ? 'Nyala' : 'Mati';
+  if(id==='fan') {
+    const cst=$('ck-st'),cimg=$('ck-img');
+    if(cst)  cst.textContent = on?'Nyala':'Mati';
+    if(cimg) cimg.style.filter = on?'none':'grayscale(.5)';
+  }
+  if(id==='light') {
+    const cst=$('cl-st'),cimg=$('cl-img');
+    if(cst)  cst.textContent = on?'Nyala':'Mati';
+    if(cimg) cimg.style.filter = on?'none':'grayscale(.5)';
+  }
+}
+
+// ─── LOGS ─────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const [al, lg] = await Promise.all([
+      fetch(`${API}/api/alerts?limit=30`).then(r=>r.json()),
+      fetch(`${API}/api/control-log?limit=30`).then(r=>r.json()),
+    ]);
+    const ab = $('alertBody');
+    if(ab) ab.innerHTML = (Array.isArray(al)?al:[]).map(a =>
+      `<tr><td>${fmtTs(a.timestamp)}</td><td><span class="chip chip-r">${a.jenis}</span></td><td>${a.pesan.replace(/<[^>]+>/g,'')}</td><td>${a.nilai??'-'}</td></tr>`
+    ).join('') || '<tr><td colspan=4 style="text-align:center;color:var(--gray300);padding:20px">Tidak ada alert</td></tr>';
+    const lb = $('logBody');
+    if(lb) lb.innerHTML = (Array.isArray(lg)?lg:[]).map(l =>
+      `<tr><td>${fmtTs(l.timestamp)}</td><td>${l.perangkat}</td><td><span class="chip ${l.perintah==='ON'?'chip-g':'chip-r'}">${l.perintah}</span></td><td>${l.sumber}</td></tr>`
+    ).join('') || '<tr><td colspan=4 style="text-align:center;color:var(--gray300);padding:20px">Belum ada log</td></tr>';
+  } catch(e) {}
+}
+async function loadCtrlLog() {
+  try {
+    const lg = await fetch(`${API}/api/control-log?limit=10`).then(r=>r.json());
+    const el = $('ctrlBody'); if(!el) return;
+    el.innerHTML = (Array.isArray(lg)?lg:[]).map(l =>
+      `<tr><td>${fmtTs(l.timestamp)}</td><td>${l.perangkat}</td><td><span class="chip ${l.perintah==='ON'?'chip-g':'chip-r'}">${l.perintah}</span></td><td>${l.sumber}</td></tr>`
+    ).join('') || '<tr><td colspan=4 style="text-align:center;color:var(--gray300);padding:20px">Belum ada log</td></tr>';
+  } catch(e) {}
+}
+
+// ─── CHAT ─────────────────────────────────────────────────
+function initChat() {
+  $('chatBox').innerHTML = `<div class="cm a">Halo! Saya AI SentinelFood dengan akses data sensor real-time.\n\nAnda bisa menanyakan kondisi gudang, estimasi umur simpan komoditas, atau memberikan perintah seperti "nyalakan kipas" dan "matikan lampu".\n\nContoh pertanyaan: "Apakah kondisi saat ini aman untuk menyimpan beras?" atau "Berapa lama jagung bisa bertahan?"</div>`;
+}
+async function sendChat() {
+  const inp = $('chatInp'), msg = inp.value.trim(); if(!msg) return;
+  inp.value = '';
+  const box = $('chatBox');
+  box.innerHTML += `<div class="cm u">${esc(msg)}</div>`;
+  box.innerHTML += `<div class="cm typing" id="typing">AI sedang menganalisis data sensor...</div>`;
+  box.scrollTop = box.scrollHeight;
+  try {
+    const r = await fetch(`${API}/api/chat`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+    const d = await r.json();
+    $('typing')?.remove();
+    box.innerHTML += `<div class="cm a">${d.reply ? esc(d.reply) : 'Tidak ada respons'}</div>`;
+    if(d.action_taken) {
+      box.innerHTML += `<div class="cm a" style="color:var(--forest);font-size:12px;font-weight:600">Tindakan dijalankan: ${esc(d.action_taken)}</div>`;
+      setAct('fan',  d.kipas, 'fan');
+      setAct('light',d.lampu, 'light');
+    }
+  } catch(e) {
+    $('typing')?.remove();
+    box.innerHTML += `<div class="cm a" style="color:var(--red)">Gagal menghubungi AI</div>`;
+  }
+  box.scrollTop = box.scrollHeight;
+}
+$('chatInp').addEventListener('keydown', e => { if(e.key==='Enter') sendChat(); });
+
+// ─── CONNECTIVITY ─────────────────────────────────────────
+function setConn(on) {
+  $('conn-chip').className = 'status-chip '+(on?'live':'dead');
+  $('conn-txt').textContent = on ? 'Online' : 'Offline';
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────
+function notif(msg, t='b') {
+  const w = $('notif-wrap');
+  const n = document.createElement('div');
+  n.className = `notif ${t}`;
+  n.innerHTML = `<span>${msg}</span><span class="notif-x" onclick="this.parentNode.remove()">×</span>`;
+  w.appendChild(n);
+  setTimeout(() => n.remove(), 4000);
+}
+// ─── STATE: USER ROLE ──────────────────────────────────────
+let _role = 'operator';
+let _user = '';
+
+// ─── ML INSIGHT ───────────────────────────────────────────
+function toggleSim() {
+  const on = $('ml-sim-toggle').checked;
+  $('ml-sim-wrap').style.display = on ? 'block' : 'none';
+  if(!on) loadML();
+}
+
+async function runSim() {
+  const kom   = $('ml-kom').value;
+  const suhu  = parseFloat($('ml-s-s').value||25);
+  const rh    = parseFloat($('ml-s-h').value||65);
+  const smoke = parseInt($('ml-s-g').value||100);
+  try {
+    const r = await fetch(`${API}/api/ml/predict_custom`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({komoditas:kom, suhu, rh, smoke})
+    });
+    renderML(await r.json(), true);
+  } catch(e) { notif('Gagal simulasi','r'); }
+}
+
+async function loadML() {
+  const kom = ($('ml-kom')?.value)||'beras';
+  try {
+    const [st, pred] = await Promise.all([
+      fetch(`${API}/api/ml/status`).then(r=>r.json()),
+      fetch(`${API}/api/ml/predict?komoditas=${kom}`).then(r=>r.json()),
+    ]);
+    const sr = $('ml-status-row');
+    if(sr) sr.textContent = st.ready
+      ? `Model siap · trained: ${fmtTs(st.trained_at)} · n=${st.n_train} sampel${_role==='owner'?' · [Owner] dapat paksa re-train':''}`
+      : 'Model belum siap — pastikan scikit-learn terinstall: pip install scikit-learn numpy';
+    renderML(pred, false);
+  } catch(e) {
+    ['ml-c1','ml-c2','ml-c3'].forEach(id=>{
+      const el=$(id);if(!el)return;
+      el.innerHTML='<div class="card-hd">'+el.querySelector('.card-hd').textContent+'</div>'
+        +'<div style="color:var(--red);font-size:13px;padding-top:6px">Gagal. Cek: pip install scikit-learn numpy</div>';
+    });
+  }
+}
+
+function renderML(p, isSim) {
+  const sim = isSim ? '<span style="background:var(--blue-bg);color:var(--blue);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-left:8px">SIMULASI</span>' : '';
+
+  if(!p.ready) {
+    ['ml-c1','ml-c2','ml-c3'].forEach(id=>{
+      const el=$(id); if(!el)return;
+      el.innerHTML='<div class="card-hd">'+el.querySelector('.card-hd').textContent+'</div>'
+        +`<div style="color:var(--gray400);font-size:13px;line-height:1.7;padding-top:6px">${p.pesan||'Model belum siap'}</div>`;
+    });
+    return;
+  }
+
+  // ── Card 1: Umur simpan ─────────────────────────────────
+  const pct = p.umur_simpan_pct||0;
+  const sc  = pct>=60?'var(--forest)':pct>=25?'var(--gold)':'var(--red)';
+  $('ml-c1').innerHTML = `<div class="card-hd">Model 1 — Umur Simpan${sim}</div>
+    <div style="text-align:center;padding:10px 0">
+      <div style="font-family:var(--mono);font-size:56px;font-weight:400;color:${sc};line-height:1;letter-spacing:-2px">${p.umur_simpan_hari}</div>
+      <div style="font-size:11px;color:var(--gray400);margin-top:2px;letter-spacing:.8px">HARI TERSISA</div>
+      <div style="margin:14px 12px 0">
+        <div style="height:6px;background:var(--gray100);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${sc};border-radius:3px;transition:width 1.2s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--gray300);margin-top:4px">
+          <span>0</span><span style="color:${sc};font-weight:600">${pct}%</span><span>${p.sl_opt} hr optimal</span>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--gray300);margin-top:10px">
+        ${p.suhu}°C · ${p.rh}% RH · ${p.smoke} ppm<br>
+        <span title="Model fisika Arrhenius">Arrhenius: ${p.umur_simpan_arrhenius} hr</span>
+      </div>
+    </div>`;
+
+  // ── Card 2: Keamanan ────────────────────────────────────
+  const KC = {AMAN:'#15803D',BERISIKO:'var(--gold)',TIDAK_AMAN:'var(--red)'};
+  const KB = {AMAN:'#DCFCE7',BERISIKO:'var(--gold-bg)',TIDAK_AMAN:'var(--red-bg)'};
+  const kc = p.keamanan||'—';
+  const probHtml = Object.entries(p.keamanan_prob||{})
+    .sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+    <div style="margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:11px;font-weight:700;color:${KC[k]||'var(--gray400)'}">${k.replace('_',' ')}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--gray400)">${Math.round(v*100)}%</span>
+      </div>
+      <div style="height:5px;background:var(--gray100);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(v*100)}%;background:${KC[k]||'var(--gray200)'};border-radius:3px"></div>
+      </div>
+    </div>`).join('');
+  $('ml-c2').innerHTML = `<div class="card-hd">Model 2 — Keamanan Konsumsi${sim}</div>
+    <div style="text-align:center;padding:10px 0 14px">
+      <div style="display:inline-block;padding:10px 28px;border-radius:9px;background:${KB[kc]||'var(--gray50)'};border:2px solid ${KC[kc]||'var(--gray200)'}">
+        <div style="font-size:20px;font-weight:800;color:${KC[kc]||'var(--gray700)'};">${kc.replace('_',' ')}</div>
+        <div style="font-size:11px;color:${KC[kc]||'var(--gray400)'};margin-top:3px">${p.keamanan_label||''}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--gray400);margin-top:6px">${p.confidence_pct}% confidence</div>
+    </div>
+    <div style="padding:0 2px">${probHtml}</div>`;
+
+  // ── Card 3: Anomali gas ─────────────────────────────────
+  const ok = !p.anomali_gas;
+  $('ml-c3').innerHTML = `<div class="card-hd">Model 3 — Anomali Gas${sim}</div>
+    <div style="text-align:center;padding:12px 0">
+      <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;background:${ok?'#DCFCE7':'var(--red-bg)'};border:2.5px solid ${ok?'#86EFAC':'#FCA5A5'}">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${ok?'#15803D':'var(--red)'}" stroke-width="2.5">
+          ${ok?'<path d="M20 6 9 17l-5-5"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
+        </svg>
+      </div>
+      <div style="font-size:17px;font-weight:700;color:${ok?'#15803D':'var(--red)'}">${p.anomali_label}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--gray400);margin-top:4px">${p.smoke} ppm · score ${p.anomali_score}</div>
+    </div>
+    <div style="background:var(--gray50);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--gray500);line-height:1.75">
+      ${ok?`Gas dalam kondisi normal. Tidak ada indikasi kebakaran atau kebocoran gas.`
+          :`<strong style="color:var(--red)">Pola gas tidak normal!</strong> Kemungkinan: kebakaran, kebocoran LPG, atau residu fumigan. Periksa gudang segera.`}
+    </div>`;
+
+  // ── Penjelasan ──────────────────────────────────────────
+  $('ml-explain').innerHTML = (p.penjelasan||[]).map((t,i,arr)=>
+    `<div style="display:flex;gap:10px;padding:10px 0;${i<arr.length-1?'border-bottom:1px solid var(--gray100)':''}">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--gray300);flex-shrink:0;padding-top:2px">${String(i+1).padStart(2,'0')}</div>
+      <div style="font-size:13px;color:var(--gray600,#444);line-height:1.72">${esc(t)}</div>
+    </div>`).join('')||'<div style="color:var(--gray300);font-size:13px">—</div>';
+
+  // ── Rekomendasi ─────────────────────────────────────────
+  $('ml-recs').innerHTML = (p.rekomendasi||[]).map(r=>{
+    const isCrit = /segera|evakuasi|Segera|Tidak aman|Keluarkan/i.test(r);
+    const isWarn = /Nyalakan|Aktifkan|Percepat|Lakukan|Periksa/i.test(r);
+    return `<div class="rec-item ${isCrit?'crit':isWarn?'warn':''}"><div class="rec-dot"></div><div class="rec-text">${esc(r)}</div></div>`;
+  }).join('')||'<div style="color:var(--gray300);font-size:13px">—</div>';
+}
+
+// ─── LAPORAN ──────────────────────────────────────────────
+function initReportPage() {
+  const isOwner = _role === 'owner';
+  const oo = $('report-owner-only');
+  const no = $('report-no-owner');
+  if(oo) oo.style.display = isOwner ? '' : 'none';
+  if(no) no.style.display = isOwner ? 'none' : '';
+
+  // Set default tanggal
+  const today = new Date().toISOString().split('T')[0];
+  const week  = new Date(Date.now()-7*864e5).toISOString().split('T')[0];
+  const rd = $('rep-dari');   if(rd) rd.value = week;
+  const rs = $('rep-sampai'); if(rs) rs.value = today;
+
+  loadReports();
+}
+
+async function loadReports() {
+  try {
+    const rows = await fetch(`${API}/api/report/list`).then(r => r.json());
+    const tb = $('repBody'); if(!tb) return;
+    if(!rows.length) {
+      tb.innerHTML = '<tr><td colspan=6 style="text-align:center;color:var(--gray300);padding:20px">Belum ada laporan</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map(r => `
+      <tr>
+        <td style="font-family:var(--mono)">#${r.id}</td>
+        <td>${fmtTs(r.timestamp)}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.periode_dari} s/d ${r.periode_sampai}</td>
+        <td>${r.generated_by}</td>
+        <td class="rep-hash">${r.hash_sha256.slice(0,8)}...</td>
+        <td style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="viewReport(${r.id})" style="font-size:11px;padding:4px 10px">Lihat</button>
+          <button class="btn btn-outline" onclick="verifyReport(${r.id})" style="font-size:11px;padding:4px 10px;border-color:#a7d8bc;color:var(--forest)">Verifikasi</button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {}
+}
+
+async function generateReport() {
+  const btn = $('btnGenRep'); btn.disabled = true;
+  const dari   = $('rep-dari').value;
+  const sampai = $('rep-sampai').value;
+  const kom    = $('rep-kom').value;
+  const res    = $('report-gen-result');
+  res.innerHTML = `<div class="a-loading"><div class="spinner"></div> Generating laporan ${dari} s/d ${sampai}...</div>`;
+  try {
+    const r = await fetch(`${API}/api/report/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'X-Role': _role, 'X-User': _user },
+      body: JSON.stringify({ dari, sampai, komoditas: kom })
+    });
+    const d = await r.json();
+    if(r.ok) {
+      res.innerHTML = `
+        <div style="background:#DCFCE7;border:1px solid #86EFAC;border-radius:8px;padding:14px 16px;font-size:13px;color:#15803D;line-height:1.8">
+          <strong>Laporan #${d.report_id} berhasil dibuat dan dikunci.</strong><br>
+          Periode: ${d.periode}<br>
+          <span style="font-family:var(--mono);font-size:11px;color:#15803D">SHA-256: ${d.hash}</span>
+        </div>`;
+      notif('Laporan berhasil dibuat', 'g');
+      loadReports();
+    } else {
+      res.innerHTML = `<div style="color:var(--red);font-size:13px">${d.error||'Gagal generate'}</div>`;
+    }
+  } catch(e) {
+    res.innerHTML = `<div style="color:var(--red);font-size:13px">Tidak dapat menghubungi server</div>`;
+  }
+  btn.disabled = false;
+}
+
+async function viewReport(id) {
+  try {
+    const r = await fetch(`${API}/api/report/${id}`);
+    const d = await r.json();
+    if(!r.ok) { notif('Laporan tidak ditemukan', 'r'); return; }
+    const dt = d.data;
+    const m  = dt.meta || {};
+    const st = dt.statistik || {};
+    const sl = dt.shelf_life || {};
+    const ml = dt.ml || {};
+    $('rep-detail-title').textContent = `Laporan #${d.id} — ${m.periode_dari} s/d ${m.periode_sampai}`;
+    $('rep-detail-body').innerHTML = `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+          <span style="background:#DCFCE7;color:#15803D;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700">${d.verified ? 'TERVERIFIKASI' : 'BELUM DIVERIFIKASI'}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--gray400)">${d.hash_sha256.slice(0,16)}...</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray400);line-height:1.8">
+          Dibuat: ${fmtTs(m.generated_at)} &nbsp;·&nbsp; Oleh: ${m.generated_by}<br>
+          Sistem: ${m.sistem} &nbsp;·&nbsp; Enkripsi: ${m.enkripsi}
+        </div>
+      </div>
+      <div class="rep-stat-grid">
+        <div class="rep-stat-box"><div class="rep-stat-lbl">Total Data Sensor</div><div class="rep-stat-val">${st.total_data||0}</div></div>
+        <div class="rep-stat-box"><div class="rep-stat-lbl">Total Alert</div><div class="rep-stat-val" style="color:var(--red)">${st.total_alert||0}</div></div>
+        <div class="rep-stat-box"><div class="rep-stat-lbl">Umur Simpan ${sl.komoditas||''}</div><div class="rep-stat-val" style="color:var(--forest)">${sl.shelf_life_hari||'—'} <span style="font-size:12px;font-weight:400;color:var(--gray400)">hari</span></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        ${['suhu','kelembapan','smoke'].map(p => {
+          const s = st[p]||{}; const u = p==='suhu'?'°C':p==='kelembapan'?'%':'ppm';
+          return `<div style="background:var(--gray50);border:1px solid var(--gray100);border-radius:7px;padding:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--gray400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">${p}</div>
+            <div style="font-size:11px;color:var(--gray500);font-family:var(--mono);line-height:1.9">
+              Rata: <b>${s.mean||'—'}${u}</b><br>Min: ${s.min||'—'}${u} · Maks: ${s.max||'—'}${u}<br>Std: ${s.std||'—'}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      ${ml && ml.ready ? `
+      <div style="background:var(--mint);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--gray600,#444);line-height:1.8;margin-bottom:14px">
+        <strong style="color:var(--forest)">ML Insight saat laporan dibuat:</strong><br>
+        Status: <b>${ml.anomaly_label||'—'}</b> &nbsp;·&nbsp; Prediksi suhu: <b>${ml.prediksi_suhu||'—'}°C</b> &nbsp;·&nbsp; Prediksi RH: <b>${ml.prediksi_rh||'—'}%</b><br>
+        ${(ml.rekomendasi||[]).join('<br>')}
+      </div>` : ''}
+      <div style="font-family:var(--mono);font-size:10px;color:var(--gray300);padding:10px;background:var(--gray50);border-radius:6px;word-break:break-all;line-height:1.7">
+        SHA-256: ${d.hash_sha256}
+      </div>`;
+    $('rep-detail-card').style.display = '';
+    $('rep-detail-card').scrollIntoView({behavior:'smooth'});
+  } catch(e) { notif('Gagal memuat laporan', 'r'); }
+}
+
+async function verifyReport(id) {
+  try {
+    const r = await fetch(`${API}/api/report/verify/${id}`);
+    const d = await r.json();
+    if(d.valid) {
+      notif(`Laporan #${id}: Integritas terjaga — data asli`, 'g');
+    } else {
+      notif(`PERINGATAN! Laporan #${id}: Data telah dimodifikasi!`, 'r');
+    }
+    loadReports();
+  } catch(e) { notif('Gagal verifikasi', 'r'); }
+}
+
+</script>
+</body>
+</html>

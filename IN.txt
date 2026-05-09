@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartHome — Ciseeng</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090f; --surface:#0c1018; --surface2:#111620; --surface3:#161d2a;
+  --border:#1a2535; --border2:#1f2e42; --text:#dde8f5; --text-dim:#4e6a85;
+  --text-muted:#253344;
+  --blue:#38bdf8; --blue2:#0ea5e9; --green:#34d399; --yellow:#fbbf24;
+  --red:#f87171; --purple:#a78bfa; --orange:#fb923c;
+  --fan:#38bdf8; --lamp:#fbbf24;
+  --mono:'JetBrains Mono',monospace; --sans:'Outfit',sans-serif;
+  --sw:248px; --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+
+/* ══════════════════════════════════════
+   FACE VERIFICATION (login only)
+══════════════════════════════════════ */
+
+
+
+
+
+
+
+
+
+ 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+
+
+
+
+
+ 50%{top:95%} 100%{top:0%} }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ══════════════════════════════════════
+   LOGIN
+══════════════════════════════════════ */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9997;overflow:hidden;}
+#loginPage::before{content:'';position:absolute;inset:0;background:var(--bg);}
+.lg-grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(26,37,53,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(26,37,53,.5) 1px,transparent 1px);
+  background-size:48px 48px;}
+.lg-box{position:relative;z-index:9998;width:420px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:18px;padding:44px 38px;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(56,189,248,.04);
+  animation:lgIn .5s cubic-bezier(.16,1,.3,1) both;}
+@keyframes lgIn{from{opacity:0;transform:translateY(20px) scale(.97);}to{opacity:1;transform:none;}}
+.lg-logo{text-align:center;margin-bottom:28px;}
+.lg-icon{width:54px;height:54px;border-radius:13px;background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(14,165,233,.08));
+  border:1px solid rgba(56,189,248,.25);display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin:0 auto 14px;box-shadow:0 0 28px rgba(56,189,248,.12);}
+.lg-logo h1{font-size:21px;font-weight:700;letter-spacing:-.3px;}
+.lg-logo p{font-size:12px;color:var(--text-dim);margin-top:3px;}
+.lg-tabs{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:22px;}
+.lg-tab{flex:1;padding:8px;border:none;background:none;color:var(--text-dim);font-family:var(--sans);
+  font-size:13px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.lg-tab.active{background:var(--surface3);color:var(--text);font-weight:600;}
+.av-upload{display:flex;flex-direction:column;align-items:center;margin-bottom:20px;}
+.av-prev{width:76px;height:76px;border-radius:50%;background:var(--surface2);border:2px dashed var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;
+  overflow:hidden;transition:border-color .2s;position:relative;}
+.av-prev:hover{border-color:var(--blue);}
+.av-prev img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none;}
+.av-hint{font-size:11px;color:var(--text-dim);margin-top:7px;}
+.fg{margin-bottom:16px;}
+.fl{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:7px;}
+.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);
+  font-family:var(--sans);font-size:14px;padding:10px 13px;outline:none;transition:all .2s;}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+.fi::placeholder{color:var(--text-muted);}
+.lg-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--blue2),#0284c7);border:none;
+  border-radius:8px;color:white;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;
+  transition:all .2s;margin-top:6px;box-shadow:0 4px 18px rgba(14,165,233,.28);}
+.lg-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(14,165,233,.38);}
+.lg-err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:var(--red);
+  font-size:12px;padding:9px 13px;border-radius:7px;margin-top:10px;display:none;text-align:center;}
+.lg-hint{font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+#app{display:none;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.sb-logo{padding:22px 18px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;}
+.sb-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(14,165,233,.08));
+  border:1px solid rgba(56,189,248,.22);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.sb-logo span{font-size:14px;font-weight:700;letter-spacing:-.2px;}
+.sb-user{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;}
+.sb-av{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;flex-shrink:0;}
+.sb-av img{width:100%;height:100%;object-fit:cover;}
+.sb-uname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-role{font-size:10px;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-top:1px;}
+.sb-nav{flex:1;padding:10px;overflow-y:auto;}
+.nav-sec{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);padding:10px 8px 5px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;color:var(--text-dim);
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(56,189,248,.08);color:var(--blue);border-color:rgba(56,189,248,.12);}
+.nav-ic{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+.nb{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;display:none;}
+.sb-bot{padding:10px;border-top:1px solid var(--border);}
+.lo-btn{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;color:var(--text-dim);
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;width:100%;background:none;border:1px solid transparent;}
+.lo-btn:hover{background:rgba(248,113,113,.08);color:var(--red);border-color:rgba(248,113,113,.15);}
+
+/* MAIN */
+.main{margin-left:var(--sw);min-height:100vh;}
+.topbar{height:58px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;position:sticky;top:0;z-index:50;background:rgba(7,9,15,.88);backdrop-filter:blur(14px);}
+.tp-title{font-size:14px;font-weight:700;}
+.tp-bc{font-size:11px;color:var(--text-dim);}
+.tp-right{display:flex;align-items:center;gap:10px;}
+.sp{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);
+  padding:5px 11px;border-radius:20px;font-size:11px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s ease infinite;}
+.dot.off{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tp-clk{font-family:var(--mono);font-size:12px;color:var(--text-dim);}
+
+/* PAGE */
+.page{display:none;padding:24px 26px;animation:pgIn .25s ease both;}
+.page.active{display:block;}
+@keyframes pgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;}
+.ph h2{font-size:19px;font-weight:700;}
+.ph p{font-size:12px;color:var(--text-dim);margin-top:3px;}
+.ph-acts{display:flex;gap:7px;flex-shrink:0;}
+.btn-o{background:none;border:1px solid var(--border2);color:var(--text-dim);font-family:var(--sans);
+  font-size:11px;font-weight:500;padding:6px 13px;border-radius:7px;cursor:pointer;transition:all .2s;}
+.btn-o:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ══════════════════════════════════════
+   OVERVIEW
+══════════════════════════════════════ */
+.sensor-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;position:relative;overflow:hidden;transition:border-color .3s;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .3s;}
+.sc.ok{border-color:rgba(52,211,153,.2);}
+.sc.ok::before{background:var(--green);opacity:1;}
+.sc.warn{border-color:rgba(251,191,36,.25);}
+.sc.warn::before{background:var(--yellow);opacity:1;}
+.sc.danger{border-color:rgba(248,113,113,.3);animation:cp 2s ease infinite;}
+.sc.danger::before{background:var(--red);opacity:1;}
+@keyframes cp{0%,100%{box-shadow:none;}50%{box-shadow:0 0 24px rgba(248,113,113,.1);}}
+.sc-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);
+  display:flex;align-items:center;gap:7px;margin-bottom:12px;}
+.sc-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.sc-val{font-size:42px;font-weight:300;line-height:1;font-family:var(--mono);letter-spacing:-.02em;}
+.sc.danger .sc-val{color:var(--red);}
+.sc.warn .sc-val{color:var(--yellow);}
+.sc-unit{font-size:15px;color:var(--text-dim);}
+.sc-st{font-size:10px;margin-top:10px;letter-spacing:.08em;text-transform:uppercase;}
+.sc-st.ok{color:var(--green);}
+.sc-st.warn{color:var(--yellow);}
+.sc-st.danger{color:var(--red);}
+.sc-st.dim{color:var(--text-dim);}
+.sparkline{display:flex;align-items:flex-end;gap:2px;height:26px;margin-top:8px;}
+.sp-bar{flex:1;border-radius:2px;min-height:2px;transition:height .4s;}
+
+/* Device row */
+.dev-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;position:relative;overflow:hidden;transition:all .3s;}
+.dc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--text-muted);transition:all .3s;}
+.dc.af{border-color:rgba(56,189,248,.3);}
+.dc.af::before{background:var(--fan);}
+.dc.al{border-color:rgba(251,191,36,.3);}
+.dc.al::before{background:var(--lamp);}
+.dc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.dc-name{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);}
+.dc-ic{font-size:26px;transition:all .4s;filter:grayscale(1) brightness(.35);}
+.dc.af .dc-ic{filter:none;animation:spin 1s linear infinite;}
+.dc.al .dc-ic{filter:none;animation:lg 2s ease infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes lg{0%,100%{text-shadow:0 0 10px rgba(251,191,36,.4);}50%{text-shadow:0 0 22px rgba(251,191,36,.8);}}
+.dc-st{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text-dim);margin-bottom:3px;transition:color .3s;}
+.dc.af .dc-st{color:var(--fan);}
+.dc.al .dc-st{color:var(--lamp);}
+.dc-sub{font-size:10px;color:var(--text-muted);margin-bottom:14px;}
+.dc-btns{display:flex;gap:7px;}
+.db{flex:1;padding:7px 0;border-radius:7px;font-family:var(--sans);font-size:11px;font-weight:600;
+  cursor:pointer;border:1px solid;transition:all .15s;background:none;text-transform:uppercase;letter-spacing:.04em;}
+.db:active{transform:scale(.97);}
+.db.on-f{border-color:var(--fan);color:var(--fan);}
+.db.on-f:hover{background:rgba(56,189,248,.08);}
+.db.off-f{border-color:var(--text-muted);color:var(--text-dim);}
+.db.off-f:hover{background:rgba(100,100,100,.08);}
+.db.on-l{border-color:var(--lamp);color:var(--lamp);}
+.db.on-l:hover{background:rgba(251,191,36,.08);}
+.db.off-l{border-color:var(--text-muted);color:var(--text-dim);}
+.db.off-l:hover{background:rgba(100,100,100,.08);}
+
+/* ══════════════════════════════════════
+   WEATHER + SHOLAT ROW
+══════════════════════════════════════ */
+.ws-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;}
+.wx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden;}
+.wx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple));opacity:.6;}
+.wx-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.wx-loc{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);}
+.wx-updated{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.wx-main{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.wx-icon{font-size:44px;line-height:1;}
+.wx-temp{font-size:48px;font-weight:300;line-height:1;font-family:var(--mono);}
+.wx-feel{font-size:12px;color:var(--text-dim);margin-top:3px;}
+.wx-desc{font-size:14px;font-weight:500;margin-top:4px;}
+.wx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.wx-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+.wx-stat-val{font-size:15px;font-weight:600;font-family:var(--mono);}
+.wx-stat-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;}
+.wx-forecast{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:4px;}
+.wx-forecast::-webkit-scrollbar{height:3px;}
+.wx-forecast::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.fc-item{flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;text-align:center;min-width:80px;}
+.fc-day{font-size:10px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;}
+.fc-ic{font-size:22px;margin-bottom:4px;}
+.fc-hi{font-size:13px;font-weight:600;}
+.fc-lo{font-size:11px;color:var(--text-dim);}
+.fc-rain{font-size:10px;color:var(--blue);margin-top:3px;}
+
+/* Sholat card */
+.sholat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden;}
+.sholat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--yellow),var(--orange));opacity:.7;}
+.sh-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.sh-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);}
+.sh-date{font-size:11px;color:var(--text-muted);font-family:var(--mono);}
+.sh-countdown{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;
+  padding:10px 14px;margin-bottom:12px;text-align:center;}
+.sh-next-label{font-size:10px;color:var(--yellow);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.sh-next-name{font-size:16px;font-weight:700;color:var(--yellow);}
+.sh-next-time{font-size:24px;font-weight:300;font-family:var(--mono);color:var(--text);}
+.sh-countdown-val{font-size:11px;color:var(--text-dim);margin-top:3px;}
+.sh-list{display:flex;flex-direction:column;gap:3px;}
+.sh-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;
+  font-size:12px;transition:background .15s;}
+.sh-item:hover{background:var(--surface2);}
+.sh-item.active{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);}
+.sh-item.done{opacity:.45;}
+.sh-name{font-weight:500;display:flex;align-items:center;gap:7px;}
+.sh-time{font-family:var(--mono);font-size:12px;color:var(--text-dim);}
+.sh-item.active .sh-time{color:var(--yellow);}
+.sh-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);}
+.sh-item.active .sh-dot{background:var(--yellow);box-shadow:0 0 6px var(--yellow);}
+.sh-item.done .sh-dot{background:var(--green);}
+
+/* Stats bottom */
+.stat-bottom{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.stat-bottom-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);
+  margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sum-c{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;}
+.sum-l{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
+.sum-v{font-size:20px;font-weight:600;font-family:var(--mono);}
+
+/* ══════════════════════════════════════
+   CHAT PAGE
+══════════════════════════════════════ */
+.chat-layout{display:grid;grid-template-columns:1fr 300px;gap:14px;height:calc(100vh - 125px);}
+.chat-main{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;}
+.chat-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;}
+.chat-ai-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(167,139,250,.15));
+  border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.chat-ai-n{font-size:13px;font-weight:600;}
+.chat-ai-s{font-size:10px;color:var(--text-dim);}
+.chat-msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border2);}
+.cmsg{display:flex;gap:9px;align-items:flex-start;animation:mIn .2s ease both;max-width:84%;}
+.cmsg.user{flex-direction:row-reverse;align-self:flex-end;}
+@keyframes mIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.cbub{padding:9px 13px;font-size:13px;line-height:1.6;border-radius:11px;}
+.cmsg.ai .cbub{background:var(--surface2);border:1px solid var(--border2);border-radius:2px 11px 11px 11px;}
+.cmsg.user .cbub{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.18);color:#bae6fd;border-radius:11px 2px 11px 11px;}
+.cmsg.action .cbub{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);color:var(--green);font-size:12px;border-radius:8px;}
+.cav{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;overflow:hidden;}
+.cav img{width:100%;height:100%;object-fit:cover;}
+.chat-ftr{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:9px;}
+.chat-inp{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;color:var(--text);
+  font-family:var(--sans);font-size:13px;padding:9px 13px;outline:none;transition:border-color .2s;}
+.chat-inp:focus{border-color:var(--blue);}
+.chat-inp::placeholder{color:var(--text-muted);}
+.chat-send{background:linear-gradient(135deg,var(--blue2),#0284c7);border:none;border-radius:9px;color:#fff;
+  padding:0 16px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.chat-send:hover{opacity:.88;}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;}
+.typing{font-size:11px;color:var(--text-dim);padding:3px 18px;display:none;}
+.typing.show{display:block;}
+
+.chat-side{display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
+.cic{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.cic-t{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);
+  margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ir:last-child{border-bottom:none;}
+.ik{color:var(--text-dim);font-size:11px;}
+.iv{font-family:var(--mono);font-size:11px;}
+.iv.ok{color:var(--green);}
+.iv.warn{color:var(--yellow);}
+.iv.danger{color:var(--red);}
+
+/* ══════════════════════════════════════
+   ANALYTICS
+══════════════════════════════════════ */
+.an-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.cc-t{font-size:13px;font-weight:600;margin-bottom:4px;}
+.cc-s{font-size:11px;color:var(--text-dim);margin-bottom:16px;}
+.chart-area{height:150px;display:flex;align-items:flex-end;gap:3px;}
+.ch-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height .5s;cursor:pointer;}
+.ch-bar:hover{opacity:.7;}
+
+/* ══════════════════════════════════════
+   ALERTS
+══════════════════════════════════════ */
+.al-tbl{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.al-head{display:grid;grid-template-columns:100px 1fr 120px;padding:11px 18px;background:var(--surface2);
+  border-bottom:1px solid var(--border);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);}
+.al-row{display:grid;grid-template-columns:100px 1fr 120px;padding:12px 18px;border-bottom:1px solid var(--border);
+  font-size:12px;align-items:center;transition:background .15s;}
+.al-row:hover{background:var(--surface2);}
+.al-row:last-child{border-bottom:none;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;}
+.badge.d{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);}
+.badge.w{background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.2);}
+.badge.i{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2);}
+.al-ts{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+/* ══════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════ */
+.set-layout{display:grid;grid-template-columns:190px 1fr;gap:16px;}
+.set-menu{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;height:fit-content;}
+.smi{padding:8px 11px;border-radius:7px;font-size:13px;cursor:pointer;transition:all .15s;color:var(--text-dim);margin-bottom:1px;}
+.smi:hover{background:var(--surface2);color:var(--text);}
+.smi.active{background:rgba(56,189,248,.08);color:var(--blue);}
+.set-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:26px;}
+.sp-t{font-size:15px;font-weight:700;margin-bottom:5px;}
+.sp-s{font-size:12px;color:var(--text-dim);margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.sr:last-child{border-bottom:none;}
+.sr-n{font-size:13px;font-weight:500;margin-bottom:3px;}
+.sr-d{font-size:11px;color:var(--text-dim);}
+.tog{width:38px;height:20px;background:var(--surface3);border-radius:20px;position:relative;cursor:pointer;
+  transition:background .2s;border:1px solid var(--border2);flex-shrink:0;}
+.tog.on{background:var(--blue2);border-color:var(--blue);}
+.tok{width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;
+  transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.tog.on .tok{left:20px;}
+.th-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.thi label{display:block;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.thi input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;
+  color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 11px;outline:none;transition:border-color .2s;}
+.thi input:focus{border-color:var(--blue);}
+.sv-btn{margin-top:18px;background:linear-gradient(135deg,var(--blue2),#0284c7);border:none;border-radius:7px;
+  color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;padding:9px 22px;cursor:pointer;}
+.pav-sec{display:flex;align-items:center;gap:18px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.pav-big{width:68px;height:68px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.pav-big:hover{border-color:var(--blue);}
+.pav-big img{width:100%;height:100%;object-fit:cover;display:none;}
+.chg-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);
+  font-size:12px;padding:6px 13px;border-radius:7px;cursor:pointer;transition:all .2s;}
+.chg-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ══════════════════════════════════════
+   BANNER
+══════════════════════════════════════ */
+#alertBanner{position:fixed;top:0;left:var(--sw);right:0;z-index:9999;pointer-events:none;}
+.bn{display:flex;align-items:center;gap:12px;padding:12px 22px;font-size:12px;pointer-events:all;
+  border-bottom:1px solid rgba(0,0,0,.2);animation:bnIn .3s ease both;}
+.bn.danger{background:rgba(180,24,24,.93);color:#fff;backdrop-filter:blur(10px);}
+.bn.warn{background:rgba(140,62,12,.93);color:#fff;backdrop-filter:blur(10px);}
+.bn.ok{background:rgba(5,74,55,.93);color:#fff;backdrop-filter:blur(10px);}
+.bn-ic{font-size:17px;}
+.bn-txt{flex:1;}
+.bn-t{font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;}
+.bn-m{font-size:11px;opacity:.9;margin-top:1px;}
+.bn-x{background:none;border:none;color:inherit;font-size:15px;cursor:pointer;opacity:.7;}
+@keyframes bnIn{from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes bnOut{from{opacity:1;max-height:70px;padding:12px 22px;}to{opacity:0;max-height:0;padding:0;}}
+.bn.rm{animation:bnOut .25s ease forwards;}
+
+@media(max-width:900px){
+  :root{--sw:0px;}
+  .sidebar{transform:translateX(-248px);}
+  #alertBanner{left:0;}
+  .sensor-row,.dev-row,.ws-row,.an-grid,.sum-grid{grid-template-columns:1fr;}
+  .chat-layout,.set-layout{grid-template-columns:1fr;}
+  .wx-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="lg-grid"></div>
+  <div class="lg-box">
+    <div class="lg-logo">
+      <div class="lg-icon">🏠</div>
+      <h1>SmartHome Ciseeng</h1>
+      <p>IoT Monitor · ESP32 + Gemini AI · Kab. Bogor</p>
+    </div>
+    <div class="lg-tabs">
+      <button class="lg-tab active" onclick="swTab('login')">Masuk</button>
+      <button class="lg-tab" onclick="swTab('register')">Daftar</button>
+    </div>
+    <div id="fLogin">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="lUser" type="text" placeholder="Masukkan username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="lPass" type="password" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="lg-btn" onclick="doLogin()">Masuk ke Dashboard</button>
+      <div class="lg-err" id="lErr"></div>
+      <div class="lg-hint">Default: admin / admin123</div>
+    </div>
+    <div id="fRegister" style="display:none">
+      <!-- Foto profil -->
+      <div class="av-upload">
+        <div class="av-prev" onclick="document.getElementById('avIn').click()">
+          <img id="avPrev" alt=""><span>📷</span>
+        </div>
+        <div class="av-hint">Klik untuk upload foto profil (opsional)</div>
+        <input type="file" id="avIn" accept="image/*" style="display:none" onchange="prevAv(this)">
+      </div>
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="rUser" type="text" placeholder="Buat username"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="rPass" type="password" placeholder="Min 6 karakter"></div>
+      <div class="fg"><label class="fl">Konfirmasi</label><input class="fi" id="rPass2" type="password" placeholder="Ulangi password"></div>
+      <button class="lg-btn" onclick="doRegister()">Buat Akun</button>
+      <div class="lg-err" id="rErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="alertBanner"></div>
+  <aside class="sidebar">
+    <div class="sb-logo"><div class="sb-icon">🏠</div><span>SmartHome</span></div>
+    <div class="sb-user">
+      <div class="sb-av" id="sbAv">👤</div>
+      <div><div class="sb-uname" id="sbName">—</div><div class="sb-role">Administrator</div></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-sec">Utama</div>
+      <div class="nav-item active" onclick="goto('overview')"><span class="nav-ic">📊</span>Overview</div>
+      <div class="nav-item" onclick="goto('chat')"><span class="nav-ic">🤖</span>Chat AI</div>
+      <div class="nav-item" onclick="goto('analytics')"><span class="nav-ic">📈</span>Analitik</div>
+      <div class="nav-item" onclick="goto('alerts')"><span class="nav-ic">🔔</span>Alert Log<span class="nb" id="alertBadge">0</span></div>
+      <div class="nav-sec">Sistem</div>
+      <div class="nav-item" onclick="goto('settings')"><span class="nav-ic">⚙️</span>Pengaturan</div>
+    </nav>
+    <div class="sb-bot"><button class="lo-btn" onclick="doLogout()"><span>🚪</span>Keluar</button></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div><div class="tp-title" id="tpTitle">Overview</div><div class="tp-bc">SmartHome / <span id="tpSub">Dashboard</span></div></div>
+      <div class="tp-right">
+        <div class="sp"><div class="dot on" id="stDot"></div><span id="stTxt">Online</span></div>
+        <div class="tp-clk" id="clock">--:--:--</div>
+      </div>
+    </div>
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page active" id="page-overview">
+      <div class="ph">
+        <div><h2>Overview</h2><p>Kondisi ruangan, cuaca luar & jadwal sholat Ciseeng</p></div>
+        <div class="ph-acts">
+          <button class="btn-o" id="soundBtn" onclick="toggleSound()">🔔 Suara ON</button>
+          <button class="btn-o" onclick="fetchAll()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="sensor-row">
+        <div class="sc" id="cTemp"><div class="sc-label">Suhu Dalam</div><div><span class="sc-val" id="vTemp">--</span><span class="sc-unit">°C</span></div><div class="sparkline" id="spTemp"></div><div class="sc-st dim" id="stTemp">— menunggu data</div></div>
+        <div class="sc" id="cHumid"><div class="sc-label">Kelembaban</div><div><span class="sc-val" id="vHumid">--</span><span class="sc-unit">%</span></div><div class="sparkline" id="spHumid"></div><div class="sc-st dim" id="stHumid">— menunggu data</div></div>
+        <div class="sc" id="cSmoke"><div class="sc-label">Asap · MQ-2</div><div><span class="sc-val" id="vSmoke">--</span><span class="sc-unit">ppm</span></div><div class="sparkline" id="spSmoke"></div><div class="sc-st dim" id="stSmoke">— menunggu data</div></div>
+      </div>
+      <div class="dev-row">
+        <div class="dc" id="fanCard">
+          <div class="dc-top"><div class="dc-name">Kipas · GPIO 2</div><div class="dc-ic">🌀</div></div>
+          <div class="dc-st" id="fanSt">MATI</div>
+          <div class="dc-sub" id="fanAct">— belum ada aksi</div>
+          <div class="dc-btns">
+            <button class="db on-f" onclick="ctrlFan('on')">▶ Nyalakan</button>
+            <button class="db off-f" onclick="ctrlFan('off')">■ Matikan</button>
+          </div>
+        </div>
+        <div class="dc" id="lampCard">
+          <div class="dc-top"><div class="dc-name">Lampu · GPIO 4</div><div class="dc-ic">💡</div></div>
+          <div class="dc-st" id="lampSt">MATI</div>
+          <div class="dc-sub" id="lampAct">— belum ada aksi</div>
+          <div class="dc-btns">
+            <button class="db on-l" onclick="ctrlLamp('on')">▶ Nyalakan</button>
+            <button class="db off-l" onclick="ctrlLamp('off')">■ Matikan</button>
+          </div>
+        </div>
+      </div>
+      <div class="ws-row">
+        <div class="wx-card">
+          <div class="wx-header">
+            <div>
+              <div class="wx-loc">🌍 Ciseeng, Kab. Bogor</div>
+              <div class="wx-updated" id="wxUpdated">— memuat cuaca</div>
+            </div>
+            <div id="wxUvBadge" style="font-size:11px;color:var(--text-dim)"></div>
+          </div>
+          <div class="wx-main">
+            <div class="wx-icon" id="wxIcon">⏳</div>
+            <div>
+              <div class="wx-temp"><span id="wxTemp">--</span><span style="font-size:20px;color:var(--text-dim)">°C</span></div>
+              <div class="wx-feel" id="wxFeel">Terasa --°C</div>
+              <div class="wx-desc" id="wxDesc">Memuat...</div>
+            </div>
+          </div>
+          <div class="wx-grid">
+            <div class="wx-stat"><div class="wx-stat-val" id="wxHumid">--%</div><div class="wx-stat-lbl">Kelembaban</div></div>
+            <div class="wx-stat"><div class="wx-stat-val" id="wxWind">-- km/h</div><div class="wx-stat-lbl">Angin</div></div>
+            <div class="wx-stat"><div class="wx-stat-val" id="wxRain">-- mm</div><div class="wx-stat-lbl">Hujan</div></div>
+            <div class="wx-stat"><div class="wx-stat-val" id="wxCloud">--%</div><div class="wx-stat-lbl">Awan</div></div>
+          </div>
+          <div class="wx-forecast" id="wxForecast">
+            <div style="color:var(--text-muted);font-size:12px;padding:10px">— memuat prakiraan</div>
+          </div>
+        </div>
+        <div class="sholat-card">
+          <div class="sh-header">
+            <div class="sh-title">🕌 Jadwal Sholat</div>
+            <div class="sh-date" id="shDate">--</div>
+          </div>
+          <div class="sh-countdown">
+            <div class="sh-next-label">Waktu Berikutnya</div>
+            <div class="sh-next-name" id="shNextName">—</div>
+            <div class="sh-next-time" id="shNextTime">--:--</div>
+            <div class="sh-countdown-val" id="shCountdown">menghitung...</div>
+          </div>
+          <div class="sh-list" id="shList">
+            <div style="color:var(--text-muted);font-size:12px;padding:8px">— memuat jadwal</div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-bottom">
+        <div class="stat-bottom-title">Statistik 24 Jam · <span id="statCount" style="color:var(--text-muted)">memuat...</span></div>
+        <div class="sum-grid">
+          <div class="sum-c"><div class="sum-l">Suhu Rata-rata</div><div class="sum-v" id="s-tavg">--°C</div></div>
+          <div class="sum-c"><div class="sum-l">Kelembaban Rata-rata</div><div class="sum-v" id="s-havg">--%</div></div>
+          <div class="sum-c"><div class="sum-l">Asap Max</div><div class="sum-v" id="s-smax">--</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CHAT ══ -->
+    <div class="page" id="page-chat">
+      <div class="ph"><div><h2>Chat AI</h2><p>Tanya cuaca, jadwal sholat, kondisi ruangan atau beri perintah</p></div></div>
+      <div class="chat-layout">
+        <div class="chat-main">
+          <div class="chat-hdr">
+            <div class="chat-ai-av">🤖</div>
+            <div><div class="chat-ai-n">Gemini AI Assistant</div><div class="chat-ai-s">SmartHome Ciseeng · Gemini 2.5 Flash</div></div>
+          </div>
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="cmsg ai">
+              <div class="cav">🤖</div>
+              <div class="cbub">Halo! Saya asisten smart home untuk Ciseeng. Saya tahu kondisi sensor, cuaca luar, dan jadwal sholat hari ini. Contoh: <i>"cuaca sekarang gimana?"</i>, <i>"kapan dzuhur?"</i>, <i>"nyalakan kipas"</i>.</div>
+            </div>
+          </div>
+          <div class="typing" id="typingInd">⏳ AI sedang memproses...</div>
+          <div class="chat-ftr">
+            <input class="chat-inp" id="chatInp" placeholder="Tanya cuaca, sholat, atau beri perintah..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-send" id="chatSendBtn" onclick="sendChat()">Kirim →</button>
+          </div>
+        </div>
+        <div class="chat-side">
+          <div class="cic">
+            <div class="cic-t">Sensor Ruangan</div>
+            <div class="ir"><span class="ik">Suhu</span><span class="iv" id="ci-t">--°C</span></div>
+            <div class="ir"><span class="ik">Kelembaban</span><span class="iv" id="ci-h">--%</span></div>
+            <div class="ir"><span class="ik">Asap</span><span class="iv" id="ci-s">--</span></div>
+          </div>
+          <div class="cic">
+            <div class="cic-t">Cuaca Luar</div>
+            <div class="ir"><span class="ik">Suhu Luar</span><span class="iv" id="ci-wt">--°C</span></div>
+            <div class="ir"><span class="ik">Kondisi</span><span class="iv" id="ci-wd">--</span></div>
+            <div class="ir"><span class="ik">Hujan</span><span class="iv" id="ci-wr">-- mm</span></div>
+          </div>
+          <div class="cic">
+            <div class="cic-t">Perangkat</div>
+            <div class="ir"><span class="ik">🌀 Kipas</span><span class="iv" id="ci-fan">MATI</span></div>
+            <div class="ir"><span class="ik">💡 Lampu</span><span class="iv" id="ci-lamp">MATI</span></div>
+          </div>
+          <div class="cic">
+            <div class="cic-t">Perintah Cepat</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:4px;">
+              <button class="btn-o" style="width:100%;text-align:left" onclick="quickCmd('bagaimana cuaca sekarang?')">🌤️ Cek Cuaca</button>
+              <button class="btn-o" style="width:100%;text-align:left" onclick="quickCmd('jadwal sholat hari ini')">🕌 Jadwal Sholat</button>
+              <button class="btn-o" style="width:100%;text-align:left" onclick="quickCmd('nyalakan kipas')">🌀 Nyalakan Kipas</button>
+              <button class="btn-o" style="width:100%;text-align:left" onclick="quickCmd('matikan kipas')">🌀 Matikan Kipas</button>
+              <button class="btn-o" style="width:100%;text-align:left" onclick="quickCmd('kondisi ruangan sekarang')">📊 Cek Kondisi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ANALYTICS ══ -->
+    <div class="page" id="page-analytics">
+      <div class="ph"><div><h2>Analitik</h2><p>Grafik tren data sensor 40 data terakhir</p></div><button class="btn-o" onclick="fetchHistory()">↻ Refresh</button></div>
+      <div class="an-grid">
+        <div class="cc"><div class="cc-t">Tren Suhu</div><div class="cc-s">40 data terakhir · °C</div><div class="chart-area" id="chTemp"></div></div>
+        <div class="cc">
+          <div class="cc-t">Ringkasan 24 Jam</div><div class="cc-s">Statistik periode ini</div>
+          <div style="display:flex;flex-direction:column;">
+            <div class="ir"><span class="ik">Suhu min</span><span class="iv" id="a-tmin">--</span></div>
+            <div class="ir"><span class="ik">Suhu max</span><span class="iv" id="a-tmax">--</span></div>
+            <div class="ir"><span class="ik">Suhu avg</span><span class="iv" id="a-tavg">--</span></div>
+            <div class="ir"><span class="ik">Lembab avg</span><span class="iv" id="a-havg">--</span></div>
+            <div class="ir"><span class="ik">Asap max</span><span class="iv" id="a-smax">--</span></div>
+            <div class="ir"><span class="ik">Total data</span><span class="iv" id="a-cnt">--</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="an-grid">
+        <div class="cc"><div class="cc-t">Tren Kelembaban</div><div class="cc-s">40 data · %</div><div class="chart-area" id="chHumid"></div></div>
+        <div class="cc"><div class="cc-t">Tren Asap MQ-2</div><div class="cc-s">40 data terakhir</div><div class="chart-area" id="chSmoke"></div></div>
+      </div>
+    </div>
+
+    <!-- ══ ALERTS ══ -->
+    <div class="page" id="page-alerts">
+      <div class="ph"><div><h2>Alert Log</h2><p>Riwayat semua peringatan sistem</p></div><button class="btn-o" onclick="fetchAlerts()">↻ Refresh</button></div>
+      <div class="al-tbl">
+        <div class="al-head"><div>Severity</div><div>Pesan</div><div>Waktu</div></div>
+        <div id="alertsList"><div style="padding:30px;text-align:center;color:var(--text-muted);font-size:13px">— memuat data</div></div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="ph"><div><h2>Pengaturan</h2><p>Konfigurasi sistem dan profil</p></div></div>
+      <div class="set-layout">
+        <div class="set-menu">
+          <div class="smi active" onclick="swSet('profile')">👤 Profil</div>
+          <div class="smi" onclick="swSet('threshold')">🌡️ Threshold</div>
+          <div class="smi" onclick="swSet('notif')">🔔 Notifikasi</div>
+          <div class="smi" onclick="swSet('device')">📟 Device Info</div>
+        </div>
+        <div class="set-panel">
+          <div id="set-profile">
+            <div class="sp-t">Profil Pengguna</div>
+            <div class="sp-s">Kelola akun dan foto profil</div>
+            <div class="pav-sec">
+              <div class="pav-big" id="pavBig" onclick="document.getElementById('pavIn').click()">
+                <img id="pavImg" alt=""><span id="pavEm">👤</span>
+              </div>
+              <div>
+                <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Klik foto untuk mengganti. Format JPG/PNG.</p>
+                <button class="chg-btn" onclick="document.getElementById('pavIn').click()">Ganti Foto</button>
+                <input type="file" id="pavIn" accept="image/*" style="display:none" onchange="changePhoto(this)">
+              </div>
+            </div>
+            <div class="sr"><div><div class="sr-n">Username</div><div class="sr-d" id="profNameD">—</div></div></div>
+            <div class="sr"><div><div class="sr-n">Ganti Password</div><div class="sr-d">Perbarui password akun</div></div><button class="chg-btn" onclick="changePass()">Ganti</button></div>
+          </div>
+          <div id="set-threshold" style="display:none">
+            <div class="sp-t">Threshold Sensor</div>
+            <div class="sp-s">Batas nilai sensor untuk alert dan otomasi</div>
+            <div class="th-grid">
+              <div class="thi"><label>Suhu Max (°C)</label><input type="number" id="th-tm" value="35"></div>
+              <div class="thi"><label>Suhu Min (°C)</label><input type="number" id="th-tn" value="15"></div>
+              <div class="thi"><label>Kelembaban Max (%)</label><input type="number" id="th-hm" value="80"></div>
+              <div class="thi"><label>Kelembaban Min (%)</label><input type="number" id="th-hn" value="30"></div>
+              <div class="thi"><label>Asap Warning</label><input type="number" id="th-sw" value="600"></div>
+              <div class="thi"><label>Asap Kritis</label><input type="number" id="th-sc" value="1200"></div>
+            </div>
+            <button class="sv-btn">Simpan</button>
+          </div>
+          <div id="set-notif" style="display:none">
+            <div class="sp-t">Notifikasi</div>
+            <div class="sp-s">Preferensi alert dan notifikasi</div>
+            <div class="sr"><div><div class="sr-n">Suara Alert</div><div class="sr-d">Bunyi beep saat ada alert</div></div><div class="tog on" id="tog-snd" onclick="this.classList.toggle('on');soundOn=this.classList.contains('on')"><div class="tok"></div></div></div>
+            <div class="sr"><div><div class="sr-n">Browser Notification</div><div class="sr-d">Pop-up notifikasi</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tok"></div></div></div>
+            <div class="sr"><div><div class="sr-n">Reminder Sholat</div><div class="sr-d">Notifikasi 10 menit sebelum adzan</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tok"></div></div></div>
+            <div class="sr"><div><div class="sr-n">Auto Kipas</div><div class="sr-d">Kipas nyala otomatis saat suhu tinggi</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tok"></div></div></div>
+          </div>
+          <div id="set-device" style="display:none">
+            <div class="sp-t">Informasi Device</div>
+            <div class="sp-s">Konfigurasi hardware ESP32</div>
+            <div class="sr"><div><div class="sr-n">Device ID</div><div class="sr-d" id="devId">—</div></div></div>
+            <div class="sr"><div><div class="sr-n">Lokasi</div><div class="sr-d">Ciseeng, Kab. Bogor · -6.3328, 106.8312</div></div></div>
+            <div class="sr"><div><div class="sr-n">GPIO Kipas</div><div class="sr-d">GPIO 2 (Built-in LED)</div></div></div>
+            <div class="sr"><div><div class="sr-n">GPIO Lampu</div><div class="sr-d">GPIO 4 (LED + 220Ω)</div></div></div>
+            <div class="sr"><div><div class="sr-n">DHT11</div><div class="sr-d">GPIO 14</div></div></div>
+            <div class="sr"><div><div class="sr-n">MQ-2</div><div class="sr-d">GPIO 34 (Analog)</div></div></div>
+            <div class="sr"><div><div class="sr-n">Enkripsi</div><div class="sr-d">AES-256-GCM</div></div></div>
+            <div class="sr"><div><div class="sr-n">Server</div><div class="sr-d">http://192.168.92.30:5000</div></div></div>
+            <div class="sr"><div><div class="sr-n">Data Terakhir</div><div class="sr-d" id="devTs">—</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════
+const SERVER   = 'http://192.168.92.30:5000';
+const LAT      = -6.3328;
+const LON      = 106.8312;
+const KOTA_ID  = 501;
+
+const WX_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+  + `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,uv_index,is_day,cloud_cover`
+  + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset`
+  + `&timezone=Asia%2FJakarta&forecast_days=4`;
+
+const WX_CODE = {
+  0:'☀️ Cerah',1:'🌤️ Hampir Cerah',2:'⛅ Berawan Sebagian',3:'☁️ Mendung',
+  45:'🌫️ Berkabut',48:'🌫️ Berkabut',51:'🌦️ Gerimis Ringan',53:'🌦️ Gerimis',
+  55:'🌧️ Gerimis Lebat',61:'🌧️ Hujan Ringan',63:'🌧️ Hujan',65:'🌧️ Hujan Lebat',
+  71:'🌨️ Salju Ringan',80:'🌦️ Hujan Lokal',81:'🌧️ Hujan Lokal Sedang',
+  82:'⛈️ Hujan Lokal Lebat',95:'⛈️ Badai Petir',99:'⛈️ Badai Petir Besar'
+};
+const WX_ICON = {
+  0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',
+  61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',99:'⛈️'
+};
+const SHOLAT_NAMES = ['subuh','dzuhur','ashar','maghrib','isya'];
+const SHOLAT_LABEL = {subuh:'Subuh',dzuhur:'Dzuhur',ashar:'Ashar',maghrib:'Maghrib',isya:'Isya'};
+const DAYS_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const hist = {t:[],h:[],s:[]};
+const MAX = 20;
+const alertLogs = [];
+let prevT=null,prevH=null,prevS=null;
+let fanOn=false,lampOn=false,soundOn=true,audioCtx=null;
+let dataIv,devIv,clkIv,shIv;
+let sholatData = null;
+let wxData = null;
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+async function sha256(s){
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+const gU=()=>JSON.parse(localStorage.getItem('sh_u')||'{}');
+const sU=u=>localStorage.setItem('sh_u',JSON.stringify(u));
+const gS=()=>JSON.parse(sessionStorage.getItem('sh_s')||'null');
+const setS=u=>sessionStorage.setItem('sh_s',JSON.stringify(u));
+const clrS=()=>sessionStorage.removeItem('sh_s');
+
+// Akun admin default
+(async()=>{const u=gU();if(!u['admin']){u['admin']={hash:await sha256('admin123'),avatar:null};sU(u);}})();
+
+
+
+
+
+// ── Tab switch ────────────────────────────────────────────
+function swTab(t){
+  document.querySelectorAll('.lg-tab').forEach((el,i)=>
+    el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('fLogin').style.display=t==='login'?'block':'none';
+  document.getElementById('fRegister').style.display=t==='register'?'block':'none';
+}
+function prevAv(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{const img=document.getElementById('avPrev');img.src=e.target.result;img.style.display='block';};
+  r.readAsDataURL(inp.files[0]);
+}
+
+// ════════════════════════════════════════════
+// REGISTER — tanpa scan wajah
+// ════════════════════════════════════════════
+async function doRegister(){
+  const user  = document.getElementById('rUser').value.trim();
+  const pass  = document.getElementById('rPass').value;
+  const pass2 = document.getElementById('rPass2').value;
+  const err   = document.getElementById('rErr');
+  const avI   = document.getElementById('avPrev');
+  if(!user||!pass){showErr(err,'Semua field wajib diisi');return;}
+  if(pass.length<6){showErr(err,'Password min 6 karakter');return;}
+  if(pass!==pass2){showErr(err,'Password tidak cocok');return;}
+  const u=gU(); if(u[user]){showErr(err,'Username sudah dipakai');return;}
+  const av = (avI.src && !avI.src.endsWith(window.location.href)) ? avI.src : null;
+  u[user] = { hash: await sha256(pass), avatar: av};
+  sU(u);
+  setS({username:user, avatar:av});
+  startApp();
+}
+
+// ════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════
+async function doLogin(){
+  const user = document.getElementById('lUser').value.trim();
+  const pass = document.getElementById('lPass').value;
+  const err  = document.getElementById('lErr');
+  if(!user||!pass){showErr(err,'Username dan password wajib');return;}
+  const u=gU(); if(!u[user]){showErr(err,'Username tidak ditemukan');return;}
+  if(u[user].hash !== await sha256(pass)){showErr(err,'Password salah');return;}
+  finishLogin(user);
+}
+
+function finishLogin(user) {
+  const u = gU();
+  setS({username:user, avatar:u[user]?.avatar||null});
+  startApp();
+}
+
+// ════════════════════════════════════════════
+// FACE VERIFY MODAL (login only)
+// ════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+function showErr(el,m){el.textContent=m;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+
+function doLogout(){
+  clrS();
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  clearInterval(dataIv);clearInterval(devIv);clearInterval(clkIv);clearInterval(shIv);
+}
+
+// ════════════════════════════════════════════
+// APP INIT
+// ════════════════════════════════════════════
+function startApp(){
+  const s=gS();if(!s)return;
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sbName').textContent=s.username;
+  document.getElementById('profNameD').textContent=s.username;
+  if(s.avatar)setAllAv(s.avatar);
+  fetchAll();fetchStats();fetchDevState();
+  dataIv=setInterval(fetchAll,10000);
+  devIv=setInterval(fetchDevState,3000);
+  clkIv=setInterval(updateClock,1000);
+  shIv=setInterval(updateSholatCountdown,30000);
+  updateClock();
+}
+window.addEventListener('load',()=>{if(gS())startApp();});
+
+function fetchAll(){fetchSensor();fetchWeather();fetchSholat();}
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+const titles={overview:['Overview','Dashboard'],chat:['Chat AI','Asisten Gemini'],analytics:['Analitik','Grafik & Tren'],alerts:['Alert Log','Riwayat'],settings:['Pengaturan','Konfigurasi']};
+function goto(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.nav-item[onclick="goto('${page}')"]`).classList.add('active');
+  document.getElementById('tpTitle').textContent=titles[page][0];
+  document.getElementById('tpSub').textContent=titles[page][1];
+  if(page==='analytics')fetchHistory();
+  if(page==='alerts')fetchAlerts();
+}
+function swSet(t){
+  ['profile','threshold','notif','device'].forEach(x=>document.getElementById('set-'+x).style.display=x===t?'':'none');
+  document.querySelectorAll('.smi').forEach((el,i)=>el.classList.toggle('active',['profile','threshold','notif','device'][i]===t));
+}
+
+// ════════════════════════════════════════════
+// CLOCK
+// ════════════════════════════════════════════
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('id-ID',{hour12:false});}
+
+// ════════════════════════════════════════════
+// AUDIO
+// ════════════════════════════════════════════
+function beep(type){
+  if(!soundOn)return;
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
+    o.connect(g);g.connect(audioCtx.destination);
+    if(type==='danger'){o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);o.start(t);o.stop(t+.5);}
+    else{o.frequency.setValueAtTime(520,t);g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);o.start(t);o.stop(t+.25);}
+  }catch(e){}
+}
+function toggleSound(){
+  soundOn=!soundOn;
+  document.getElementById('soundBtn').textContent=soundOn?'🔔 Suara ON':'🔕 Suara OFF';
+  const tog=document.getElementById('tog-snd');if(tog)tog.classList.toggle('on',soundOn);
+  if(soundOn)beep('ok');
+}
+
+// ════════════════════════════════════════════
+// BANNER / ALERT
+// ════════════════════════════════════════════
+function showBanner(type,icon,title,msg){
+  const c=document.getElementById('alertBanner'),item=document.createElement('div');
+  item.className=`bn ${type}`;
+  const now=new Date().toLocaleTimeString('id-ID',{hour12:false});
+  item.innerHTML=`<span class="bn-ic">${icon}</span><span class="bn-txt"><div class="bn-t">${title}</div><div class="bn-m">${msg}</div></span><span style="font-size:10px;opacity:.6">${now}</span><button class="bn-x" onclick="this.closest('.bn').classList.add('rm');setTimeout(()=>this.closest('.bn')?.remove(),260)">✕</button>`;
+  c.appendChild(item);
+  setTimeout(()=>{item.classList.add('rm');setTimeout(()=>item.remove(),260);},type==='danger'?13000:7000);
+}
+function pushAlert(msg,level,title){
+  alertLogs.unshift({msg,level,title,time:new Date().toLocaleTimeString('id-ID',{hour12:false})});
+  if(alertLogs.length>60)alertLogs.pop();
+  const b=document.getElementById('alertBadge');b.style.display='';b.textContent=alertLogs.length;
+  beep(level);showBanner(level,level==='danger'?'🚨':level==='warn'?'⚠️':'✅',title,msg);
+  if('Notification'in window&&Notification.permission==='granted')
+    new Notification(`${level==='danger'?'🚨':'⚠️'} ${title}`,{body:msg,tag:title});
+}
+
+// ════════════════════════════════════════════
+// DEVICE CONTROL
+// ════════════════════════════════════════════
+function updFan(on,src){
+  fanOn=on;const c=document.getElementById('fanCard'),now=new Date().toLocaleTimeString('id-ID',{hour12:false});
+  on?c.classList.add('af'):c.classList.remove('af');
+  document.getElementById('fanSt').textContent=on?'MENYALA':'MATI';
+  if(src)document.getElementById('fanAct').textContent=`${now} — ${on?'dinyalakan':'dimatikan'} via ${src}`;
+  const ci=document.getElementById('ci-fan');ci.textContent=on?'MENYALA':'MATI';ci.className='iv'+(on?' ok':'');
+}
+function updLamp(on,src){
+  lampOn=on;const c=document.getElementById('lampCard'),now=new Date().toLocaleTimeString('id-ID',{hour12:false});
+  on?c.classList.add('al'):c.classList.remove('al');
+  document.getElementById('lampSt').textContent=on?'MENYALA':'MATI';
+  if(src)document.getElementById('lampAct').textContent=`${now} — ${on?'dinyalakan':'dimatikan'} via ${src}`;
+  const ci=document.getElementById('ci-lamp');ci.textContent=on?'MENYALA':'MATI';ci.className='iv'+(on?' ok':'');
+}
+async function ctrlFan(a){try{const r=await fetch(`${SERVER}/api/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device:'led',action:a,source:'web'})});const j=await r.json();if(j.status==='success'){updFan(j.led,'web');beep('ok');}}catch(e){}}
+async function ctrlLamp(a){try{const r=await fetch(`${SERVER}/api/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device:'lampu',action:a,source:'web'})});const j=await r.json();if(j.status==='success'){updLamp(j.lampu,'web');beep('ok');}}catch(e){}}
+async function fetchDevState(){try{const j=await(await fetch(`${SERVER}/api/state`,{cache:'no-store'})).json();if(j.led!==fanOn)updFan(j.led,j.updated_by||'server');if(j.lampu!==lampOn)updLamp(j.lampu,j.lampu_updated_by||'server');}catch(e){}}
+
+// ════════════════════════════════════════════
+// SENSOR
+// ════════════════════════════════════════════
+const tSt=t=>t>35?{c:'danger',l:'⬆ Terlalu Tinggi'}:t<15?{c:'warn',l:'⬇ Terlalu Rendah'}:{c:'ok',l:'✓ Normal'};
+const hSt=h=>h>80?{c:'warn',l:'⬆ Terlalu Lembab'}:h<30?{c:'warn',l:'⬇ Terlalu Kering'}:{c:'ok',l:'✓ Normal'};
+const sSt=s=>s>1200?{c:'danger',l:'⬆ Kritis'}:s>600?{c:'warn',l:'⬆ Perhatian'}:{c:'ok',l:'✓ Aman'};
+
+function sparkline(id,data,color){
+  const el=document.getElementById(id);if(!el||!data.length)return;
+  const mx=Math.max(...data),mn=Math.min(...data),rng=mx-mn||1;
+  el.innerHTML=data.map((v,i)=>`<div class="sp-bar" style="height:${Math.max(4,Math.round(((v-mn)/rng)*100))}%;opacity:${i===data.length-1?.9:.15+(i/data.length)*.5};background:${color}"></div>`).join('');
+}
+function bigChart(id,data,color){
+  const el=document.getElementById(id);if(!el||!data.length)return;
+  const mx=Math.max(...data),mn=Math.min(...data),rng=mx-mn||1;
+  el.innerHTML=data.map((v,i)=>`<div class="ch-bar" style="height:${Math.max(4,Math.round(((v-mn)/rng)*100))}%;opacity:${.3+(i/data.length)*.6};background:${color}" title="${v}"></div>`).join('');
+}
+
+async function fetchSensor(){
+  try{
+    const d=(await(await fetch(`${SERVER}/api/latest`,{cache:'no-store'})).json()).data;
+    const T=parseFloat(d.temperature),H=parseFloat(d.humidity),S=parseInt(d.smoke??0);
+    hist.t.push(T);if(hist.t.length>MAX)hist.t.shift();
+    hist.h.push(H);if(hist.h.length>MAX)hist.h.shift();
+    hist.s.push(S);if(hist.s.length>MAX)hist.s.shift();
+    document.getElementById('vTemp').textContent=T.toFixed(1);
+    document.getElementById('vHumid').textContent=H.toFixed(1);
+    document.getElementById('vSmoke').textContent=S;
+    document.getElementById('ci-t').textContent=T.toFixed(1)+'°C';
+    document.getElementById('ci-h').textContent=H.toFixed(1)+'%';
+    document.getElementById('ci-s').textContent=S;
+    document.getElementById('devId').textContent=d.device_id||'--';
+    document.getElementById('devTs').textContent=d.timestamp||'--';
+    const ts=tSt(T),hs=hSt(H),ss=sSt(S);
+    ['cTemp','cHumid','cSmoke'].forEach(id=>document.getElementById(id).className='sc');
+    document.getElementById('cTemp').classList.add(ts.c);
+    document.getElementById('cHumid').classList.add(hs.c);
+    document.getElementById('cSmoke').classList.add(ss.c);
+    document.getElementById('stTemp').className=`sc-st ${ts.c}`;document.getElementById('stTemp').textContent=ts.l;
+    document.getElementById('stHumid').className=`sc-st ${hs.c}`;document.getElementById('stHumid').textContent=hs.l;
+    document.getElementById('stSmoke').className=`sc-st ${ss.c}`;document.getElementById('stSmoke').textContent=ss.l;
+    sparkline('spTemp',hist.t,'#38bdf8');
+    sparkline('spHumid',hist.h,'#34d399');
+    sparkline('spSmoke',hist.s,S>1200?'#f87171':S>600?'#fbbf24':'#34d399');
+    if(prevT!==null){
+      if(T>35&&prevT<=35)pushAlert(`Suhu naik ke ${T.toFixed(1)}°C`,'danger','Suhu Terlalu Tinggi');
+      else if(T<15&&prevT>=15)pushAlert(`Suhu turun ke ${T.toFixed(1)}°C`,'warn','Suhu Rendah');
+      else if(prevT>35&&T<=35)pushAlert(`Suhu kembali normal: ${T.toFixed(1)}°C`,'ok','Suhu Normal');
+    }
+    if(prevH!==null){
+      if(H>80&&prevH<=80)pushAlert(`Kelembaban tinggi: ${H.toFixed(1)}%`,'warn','Kelembaban Tinggi');
+      else if(H<30&&prevH>=30)pushAlert(`Kelembaban rendah: ${H.toFixed(1)}%`,'warn','Kelembaban Rendah');
+    }
+    if(prevS!==null){
+      if(S>1200&&prevS<=1200)pushAlert(`Asap kritis! MQ-2: ${S}`,'danger','Bahaya Asap');
+      else if(S>600&&prevS<=600)pushAlert(`Asap terdeteksi MQ-2: ${S}`,'warn','Peringatan Asap');
+      else if(prevS>600&&S<=600)pushAlert(`Asap kembali aman. MQ-2: ${S}`,'ok','Asap Normal');
+    }
+    prevT=T;prevH=H;prevS=S;
+    document.getElementById('stDot').className='dot on';
+    document.getElementById('stTxt').textContent='Online';
+  }catch(e){
+    document.getElementById('stDot').className='dot off';
+    document.getElementById('stTxt').textContent='Offline';
+  }
+}
+
+async function fetchStats(){
+  try{
+    const s=(await(await fetch(`${SERVER}/api/statistics?hours=24`,{cache:'no-store'})).json()).data;
+    document.getElementById('statCount').textContent=`${s.count} data`;
+    document.getElementById('s-tavg').textContent=s.temperature.avg+'°C';
+    document.getElementById('s-havg').textContent=s.humidity.avg+'%';
+    document.getElementById('s-smax').textContent=s.smoke.max;
+    document.getElementById('a-tmin').textContent=s.temperature.min+'°C';
+    document.getElementById('a-tmax').textContent=s.temperature.max+'°C';
+    document.getElementById('a-tavg').textContent=s.temperature.avg+'°C';
+    document.getElementById('a-havg').textContent=s.humidity.avg+'%';
+    document.getElementById('a-smax').textContent=s.smoke.max;
+    document.getElementById('a-cnt').textContent=s.count+' readings';
+  }catch(e){}
+}
+
+async function fetchHistory(){
+  try{
+    const rows=(await(await fetch(`${SERVER}/api/history?limit=40`,{cache:'no-store'})).json()).data;
+    bigChart('chTemp',rows.map(r=>parseFloat(r.temperature)),'#38bdf8');
+    bigChart('chHumid',rows.map(r=>parseFloat(r.humidity)),'#34d399');
+    bigChart('chSmoke',rows.map(r=>parseInt(r.smoke??0)),'#f87171');
+    fetchStats();
+  }catch(e){}
+}
+
+async function fetchAlerts(){
+  try{
+    const data=(await(await fetch(`${SERVER}/api/alerts?limit=50`,{cache:'no-store'})).json()).data;
+    const el=document.getElementById('alertsList');
+    if(!data.length){el.innerHTML='<div style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">— tidak ada alert</div>';return;}
+    el.innerHTML=data.map(a=>`<div class="al-row"><div><span class="badge ${a.severity==='critical'?'d':a.severity==='info'?'i':'w'}">${a.severity==='critical'?'🚨 Kritis':a.severity==='info'?'✅ Info':'⚠️ Warning'}</span></div><div>${a.message}</div><div class="al-ts">${a.timestamp}</div></div>`).join('');
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════
+// WEATHER — Open-Meteo
+// ════════════════════════════════════════════
+async function fetchWeather(){
+  try{
+    const r=await fetch(WX_URL);
+    const d=await r.json();
+    wxData=d;
+    const c=d.current;
+    const code=c.weather_code;
+    document.getElementById('wxIcon').textContent=WX_ICON[code]||'🌡️';
+    document.getElementById('wxTemp').textContent=c.temperature_2m.toFixed(1);
+    document.getElementById('wxFeel').textContent=`Terasa ${c.apparent_temperature.toFixed(1)}°C`;
+    document.getElementById('wxDesc').textContent=WX_CODE[code]||`Kode ${code}`;
+    document.getElementById('wxHumid').textContent=c.relative_humidity_2m+'%';
+    document.getElementById('wxWind').textContent=c.wind_speed_10m.toFixed(1)+' km/h';
+    document.getElementById('wxRain').textContent=c.precipitation.toFixed(1)+' mm';
+    document.getElementById('wxCloud').textContent=c.cloud_cover+'%';
+    document.getElementById('wxUvBadge').textContent=`UV: ${c.uv_index} ${c.is_day?'☀️':'🌙'}`;
+    const now=new Date();
+    document.getElementById('wxUpdated').textContent=`Update: ${now.toLocaleTimeString('id-ID',{hour12:false})}`;
+    document.getElementById('ci-wt').textContent=c.temperature_2m.toFixed(1)+'°C';
+    document.getElementById('ci-wd').textContent=(WX_CODE[code]||'--').replace(/[^\w\s\u00C0-\u024F]/gu,'').trim();
+    document.getElementById('ci-wr').textContent=c.precipitation.toFixed(1)+' mm';
+    const daily=d.daily;
+    const strip=document.getElementById('wxForecast');
+    strip.innerHTML=daily.time.slice(0,4).map((ts,i)=>{
+      const dt=new Date(ts);
+      const dayLabel=i===0?'Hari Ini':i===1?'Besok':DAYS_ID[dt.getDay()];
+      const wc=daily.weather_code[i];
+      const prob=daily.precipitation_probability_max[i];
+      return`<div class="fc-item">
+        <div class="fc-day">${dayLabel}</div>
+        <div class="fc-ic">${WX_ICON[wc]||'🌡️'}</div>
+        <div class="fc-hi">${Math.round(daily.temperature_2m_max[i])}°</div>
+        <div class="fc-lo">${Math.round(daily.temperature_2m_min[i])}°</div>
+        <div class="fc-rain">💧${prob||0}%</div>
+      </div>`;
+    }).join('');
+    if(c.precipitation>0&&prevT===null){
+      pushAlert(`Hujan ${c.precipitation.toFixed(1)}mm terdeteksi di Ciseeng`,'warn','Cuaca: Hujan');
+    }
+  }catch(e){
+    document.getElementById('wxUpdated').textContent='Gagal memuat cuaca';
+  }
+}
+
+// ════════════════════════════════════════════
+// JADWAL SHOLAT — MyQuran API
+// ════════════════════════════════════════════
+async function fetchSholat(){
+  try{
+    const now=new Date();
+    const url=`https://api.myquran.com/v2/sholat/jadwal/${KOTA_ID}/${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+    const r=await fetch(url);
+    const d=await r.json();
+    if(!d.status)throw new Error('API error');
+    sholatData=d.data.jadwal;
+    renderSholat(sholatData);
+  }catch(e){
+    document.getElementById('shList').innerHTML='<div style="color:var(--text-muted);font-size:12px;padding:8px">Gagal memuat jadwal sholat</div>';
+  }
+}
+
+function renderSholat(jadwal){
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const dateStr=`${DAYS_ID[now.getDay()]}, ${now.getDate()} ${MONTHS_ID[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('shDate').textContent=dateStr;
+  let nextName=null,nextTime=null,nextMin=9999;
+  SHOLAT_NAMES.forEach(n=>{
+    const t=jadwal[n];if(!t)return;
+    const[h,m]=t.split(':').map(Number);
+    const tm=h*60+m;
+    if(tm>nowMin&&tm<nextMin){nextMin=tm;nextName=n;nextTime=t;}
+  });
+  if(!nextName){nextName='subuh';nextTime=jadwal['subuh'];}
+  document.getElementById('shNextName').textContent=SHOLAT_LABEL[nextName]||nextName;
+  document.getElementById('shNextTime').textContent=nextTime||'--:--';
+  updateSholatCountdown();
+  const list=document.getElementById('shList');
+  list.innerHTML=SHOLAT_NAMES.map(n=>{
+    const t=jadwal[n];if(!t)return'';
+    const[h,m]=t.split(':').map(Number);
+    const tm=h*60+m;
+    const isActive=n===nextName;
+    const isDone=tm<nowMin&&n!==nextName;
+    return`<div class="sh-item${isActive?' active':''}${isDone?' done':''}">
+      <div class="sh-name"><div class="sh-dot"></div>${SHOLAT_LABEL[n]}</div>
+      <div class="sh-time">${t}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateSholatCountdown(){
+  if(!sholatData)return;
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  let nextMin=9999,nextName=null;
+  SHOLAT_NAMES.forEach(n=>{
+    const t=sholatData[n];if(!t)return;
+    const[h,m]=t.split(':').map(Number);
+    const tm=h*60+m;
+    if(tm>nowMin&&tm<nextMin){nextMin=tm;nextName=n;}
+  });
+  if(!nextName){document.getElementById('shCountdown').textContent='Isya sudah lewat';return;}
+  const diff=nextMin-nowMin;
+  const jam=Math.floor(diff/60),mnt=diff%60;
+  const txt=jam>0?`${jam}j ${mnt}m lagi`:`${mnt} menit lagi`;
+  document.getElementById('shCountdown').textContent=txt;
+  if(diff===10){
+    pushAlert(`${SHOLAT_LABEL[nextName]} dalam 10 menit (${sholatData[nextName]})`,'warn',`Waktunya ${SHOLAT_LABEL[nextName]}`);
+  }
+}
+
+// ════════════════════════════════════════════
+// CHAT AI
+// ════════════════════════════════════════════
+function addMsg(text,role){
+  const c=document.getElementById('chatMsgs'),div=document.createElement('div');
+  div.className=`cmsg ${role}`;
+  const s=gS();
+  let av;
+  if(role==='user'&&s?.avatar){av=`<div class="cav"><img src="${s.avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;}
+  else{av=`<div class="cav">${role==='user'?'👤':role==='action'?'⚡':'🤖'}</div>`;}
+  div.innerHTML=`${av}<div class="cbub">${text}</div>`;
+  c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+function quickCmd(t){document.getElementById('chatInp').value=t;sendChat();}
+async function sendChat(){
+  const inp=document.getElementById('chatInp'),msg=inp.value.trim();
+  if(!msg)return;
+  addMsg(msg,'user');inp.value='';
+  const btn=document.getElementById('chatSendBtn'),typ=document.getElementById('typingInd');
+  btn.disabled=true;typ.classList.add('show');
+  try{
+    const r=await fetch(`${SERVER}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const j=await r.json();typ.classList.remove('show');btn.disabled=false;
+    if(j.action_taken){addMsg(`⚡ ${j.action_taken}`,'action');updFan(j.led,'chat AI');updLamp(j.lampu,'chat AI');beep('ok');}
+    if(j.reply)addMsg(j.reply,'ai');
+  }catch(e){typ.classList.remove('show');btn.disabled=false;addMsg('❌ Gagal terhubung ke server.','ai');}
+}
+
+// ════════════════════════════════════════════
+// PROFILE / AVATAR
+// ════════════════════════════════════════════
+function setAllAv(src){
+  const sa=document.getElementById('sbAv');sa.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  const pi=document.getElementById('pavImg'),pe=document.getElementById('pavEm');
+  if(pi){pi.src=src;pi.style.display='block';}
+  if(pe)pe.style.display='none';
+}
+function changePhoto(inp){
+  if(!inp.files[0])return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    setAllAv(e.target.result);
+    const u=gU(),s=gS();
+    if(s&&u[s.username]){u[s.username].avatar=e.target.result;sU(u);s.avatar=e.target.result;setS(s);}
+  };
+  rd.readAsDataURL(inp.files[0]);
+}
+async function changePass(){
+  const np=prompt('Password baru (min 6 karakter):');
+  if(!np||np.length<6){alert('Min 6 karakter');return;}
+  if(prompt('Ulangi password baru:')!==np){alert('Tidak cocok');return;}
+  const u=gU(),s=gS();
+  if(s&&u[s.username]){u[s.username].hash=await sha256(np);sU(u);alert('✅ Password berhasil diubah!');}
+}
+</script>
+</body>
+</html>
