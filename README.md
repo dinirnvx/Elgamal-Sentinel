@@ -399,6 +399,3 @@ MIT License - Free to use for educational purposes
 - **ESP32** - Espressif Systems
 - **DHT11** - Aosong Electronics
 
----
-
-**Selamat mencoba! 🚀**
